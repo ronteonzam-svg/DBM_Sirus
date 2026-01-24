@@ -31,7 +31,7 @@
 ## X-DBM-Mod-LoadZone-deDE: Ulduar
 ## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-Ulduar
 
-# Kologarn(all timers), YoggSaron(brain leave??, phase1 HP??, phase3 timers??), IronCouncil(DeathRune fix??), Ignis(all timers)
+# Kologarn(all timers), YoggSaron(brain leave??, phase3 timers??), IronCouncil(DeathRune fix??), Ignis(all timers), FlameLeviathan(FlameVent timer, Freya timer, maybe Thorim, Ignis, Hodir + Follow)
 
 localization.en.lua
 localization.de.lua
