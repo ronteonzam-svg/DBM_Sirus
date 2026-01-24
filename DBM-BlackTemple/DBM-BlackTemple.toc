@@ -1,0 +1,42 @@
+## Interface: 30300
+## Title:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Black Temple|r
+## Title-koKR:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0검은 사원|r
+## Title-deDE:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Der Schwarze Tempel|r
+## Title-esES:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Templo Oscuro|r
+## Title-zhCN:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0黑暗神殿|r
+## Title-zhTW:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0黑暗神廟|r
+## Title-ruRU:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Черный храм|r
+## LoadOnDemand: 1
+## Dependencies: DBM-Core
+## SavedVariables: DBMBlackTemple_AllSavedVars
+## SavedVariablesPerCharacter: DBMBlackTemple_SavedStats
+## X-DBM-Mod: 1
+## X-DBM-Mod-Type: RAID
+## X-DBM-Mod-Category: BC
+## X-DBM-StatTypes: normal,normal25
+## X-DBM-Mod-MapID: 797, 848
+## X-DBM-Mod-Sort: 1002
+## X-DBM-Mod-Name: Black Temple
+## X-DBM-Mod-Name-zhCN: 黑暗神殿
+## X-DBM-Mod-Name-ruRU: Черный храм
+## X-DBM-Mod-LoadZone-ruRU: Черный храм
+## Version: 9.2.94
+## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-BlackTemple
+
+localization.en.lua
+localization.cn.lua
+localization.de.lua
+localization.es.lua
+localization.kr.lua
+localization.ru.lua
+localization.tw.lua
+
+Najentus.lua
+Supremus.lua
+ShadeOfAkama.lua
+TeronGorefiend.lua
+Bloodboil.lua
+EssenceOfSouls.lua
+Shahraz.lua
+IllidariCouncil.lua
+Illidan.lua

@@ -1,0 +1,30 @@
+## Interface: 30300
+## Title:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0The Eye|r
+## Title-ruRU:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Крепость Бурь|r
+## Author: Ritual
+## LoadOnDemand: 1
+## Dependencies: DBM-Core
+## SavedVariables: DBMTheEye_AllSavedVars
+## SavedVariablesPerCharacter: DBMTheEye_SavedStats
+## X-DBM-Mod: 1
+## X-DBM-Mod-Type: RAID
+## X-DBM-Mod-Category: BC
+## X-DBM-StatTypes: normal25,heroic25
+## X-DBM-Mod-Has-Single-Format: 1
+## X-DBM-Mod-Name: The Eye
+## X-DBM-Mod-Name-ruRU: Крепость Бурь
+## X-DBM-Mod-MapID: 862
+## X-DBM-Mod-Sort: 303
+## X-DBM-Mod-LoadZone: Tempest Keep
+## X-DBM-Mod-LoadZone-ruRU: Крепость Бурь
+## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-TheEye
+
+
+localization.en.lua
+localization.ru.lua
+
+VoidReaver.lua
+Solarian.lua
+Alar.lua
+KaelThas.lua
+Trash.lua

@@ -1,0 +1,24 @@
+## Interface: 30300
+## Title-ruRU:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Тол'Гародская тюрьма|r
+## LoadOnDemand: 1
+## Author: Stekolnyu, Waini, Master
+## Dependencies: DBM-Core
+## SavedVariables: DBMTolGarodePrison_AllSavedVars
+## SavedVariablesPerCharacter: DBMTolGarodePrison_SavedStats
+## X-DBM-Mod: 1
+## X-DBM-Mod-Type: RAID
+## X-DBM-StatTypes: normal, normal25
+## X-DBM-Mod-Category: ISLANDS
+## X-DBM-Mod-Name: Tol'GarodePrison
+## X-DBM-Mod-Name-ruRU: Тол'Гародская тюрьма
+## X-DBM-Mod-Sort: 955
+## X-DBM-Mod-MapID: 955
+## X-DBM-Mod-LoadZone: Tol'GarodePrison
+## X-DBM-Mod-LoadZone-ruRU: Тол'Гародская тюрьма
+## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-TolGarodePrison
+
+localization.ru.lua
+
+Ctrax.lua
+Gogonash.lua
+MagicEater.lua

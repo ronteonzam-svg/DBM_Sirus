@@ -1,0 +1,26 @@
+## Interface: 30300
+## Title:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Zul'Aman|r
+## Title-ruRU:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Зул'Аман|r
+## LoadOnDemand: 1
+## Dependencies: DBM-Core
+## SavedVariablesPerCharacter: DBMZulAman_SavedVars, DBMZulAman_SavedStats
+## X-DBM-Mod: 1
+## X-DBM-Mod-Category: BC
+## X-DBM-StatTypes: normal
+## X-DBM-Mod-MapID: 782
+## X-DBM-Mod-Sort: 1005
+## X-DBM-Mod-Name: Zul'Aman
+## X-DBM-Mod-Name-ruRU: Зул'Аман
+## X-DBM-Mod-LoadZone: Zul'Aman
+## X-DBM-Mod-LoadZone-ruRU: Зул'Аман
+## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-ZulAman
+
+localization.en.lua
+localization.ru.lua
+
+Akil'zon.lua
+Nalorakk.lua
+Jan'alai.lua
+Halazzi.lua
+Malacrass.lua
+Zul'jin.lua

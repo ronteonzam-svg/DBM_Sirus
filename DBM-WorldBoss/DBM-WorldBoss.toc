@@ -1,0 +1,24 @@
+## Interface: 30300
+## Title-ruRU:|cffffe00a<|r|cffff7d0aDBM|r|cffffe00a>|r |cff69ccf0Мировые боссы и боссы категорий|r
+## LoadOnDemand: 1
+## Dependencies: DBM-Core
+## SavedVariables: DBMWorldBoss_AllSavedVars
+## SavedVariablesPerCharacter: DBMWorldBoss_SavedStats
+## X-DBM-Mod: 1
+## X-DBM-Mod-Type: RAID
+## X-DBM-StatTypes: normal
+## X-DBM-Mod-Category: WORLD_BOSS
+## X-DBM-Mod-Name: Categories
+## X-DBM-Mod-Name-ruRU: Мировые боссы и боссы категорий
+## X-DBM-Mod-SubCategories: Tol'Garod, Сategories
+## X-DBM-Mod-SubCategories-ruRU: Тол'Гарод, Категории
+## X-DBM-Mod-Sort: 946, 914
+## X-DBM-Mod-MapID: 946, 914
+## X-DBM-Mod-LoadZone: Tol'Garod, A Waking Nightmare
+## X-DBM-Mod-LoadZone-ruRU: Тол'Гарод, Кошмар Наяву
+## X-DBM-Mod-LoadCID: 70010
+## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-WorldBoss
+
+localization.ru.lua
+TolGarodeNorigorn\Norigorn.lua
+AWakingNightmare\Zort.lua
