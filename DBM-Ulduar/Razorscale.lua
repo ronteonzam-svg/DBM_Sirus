@@ -3,7 +3,7 @@ local L      = mod:GetLocalizedStrings()
 DBM_COMMON_L = {}
 local CL     = DBM_COMMON_L
 
-mod:SetRevision("20220518110528")
+mod:SetRevision("20260124000000")
 mod:SetCreatureID(33186)
 
 mod:RegisterCombat("yell", L.YellAir)
@@ -33,7 +33,7 @@ local yellDevouringFlame         = mod:NewYell(64733)
 local specWarnFuseArmor          = mod:NewSpecialWarningStack(64771, nil, 2, nil, nil, 1, 6)
 local specWarnFuseArmorOther     = mod:NewSpecialWarningTaunt(64771, nil, nil, nil, 1, 2)
 
-local enrageTimer             = mod:NewBerserkTimer(840)
+local enrageTimer             = mod:NewBerserkTimer(900)
 local timerDeepBreathCooldown = mod:NewCDTimer(21, 64021, nil, nil, nil, 5)
 local timerDeepBreathCast     = mod:NewCastTimer(2.5, 64021)
 local timerTurret1            = mod:NewTimer(53, "timerTurret1", 48642, nil, nil, 5)
@@ -113,7 +113,7 @@ function mod:SPELL_AURA_APPLIED(args)
 					remaining = expireTime - GetTime()
 				end
 				if not UnitIsDeadOrGhost("player") and (not remaining or remaining and remaining < 12) then
-					specWarnFuseArmorOther:Show(args.destName)
+					specWarnFuseArmorOther:Show(args.destName .. " (" .. amount .. ")")
 					specWarnFuseArmorOther:Play("tauntboss")
 				else
 					warnFuseArmor:Show(args.destName, amount)
