@@ -3,7 +3,7 @@ local L		= mod:GetLocalizedStrings()
 DBM_COMMON_L = {}
 local CL = DBM_COMMON_L
 
-mod:SetRevision("20220518110528")
+mod:SetRevision("20260124000000")
 mod:SetCreatureID(32845,32926)
 mod:SetUsedIcons(7, 8)
 
