@@ -33,6 +33,8 @@
 
 # Kologarn(all timers), YoggSaron(brain leave??, phase3 timers??), IronCouncil(DeathRune fix??), Ignis(all timers), FlameLeviathan(FlameVent timer, Freya timer, maybe Thorim, Ignis, Hodir + Follow)
 
+# Chck Auriaya, Freya+Elders
+
 localization.en.lua
 localization.de.lua
 localization.fr.lua
