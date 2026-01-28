@@ -17,7 +17,7 @@
 ## X-DBM-Mod-MapID: 863
 ## X-DBM-Mod-LoadZone: Serpentshrine Cavern
 ## X-DBM-Mod-LoadZone-ruRU: Змеиное святилище
-## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-Serpentshrine
+## X-Sirus-Update:
 ## Version: 9.2.94
 
 localization.en.lua

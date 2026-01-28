@@ -25,7 +25,7 @@
 ## X-DBM-Mod-LoadZone: Zul'Gurub
 ## X-DBM-Mod-LoadZone-zhCN: 祖尔格拉布
 ## X-DBM-Mod-LoadZone-ruRU: Зул'Гуруб
-## X-Sirus-Update: https://github.com/Waini4/DBM_For_Sirus/tree/main/DBM-ZG
+## X-Sirus-Update:
 
 localization.en.lua
 localization.de.lua
