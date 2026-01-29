@@ -1,14 +1,14 @@
 local mod	= DBM:NewMod("FlameLeviathan", "DBM-Ulduar")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210501000000")
+mod:SetRevision("20260124000000")
 
 mod:SetCreatureID(33113)
 
 mod:RegisterCombat("combat", 33113)
 
 mod:RegisterEventsInCombat(
-	"SPELL_AURA_REMOVED 312690 312689 62396",
+	"SPELL_AURA_REMOVED 312690 312689 62396 312339 312692 62475",
 	"SPELL_AURA_APPLIED 312689 312690 312336 62396 312339 312692 62475 312352 312705 62297",
 	"SPELL_SUMMON 62907 312355 312363 312708 312716"
 )
@@ -25,11 +25,14 @@ local warnWardofLife		= mod:NewSpecialWarning("warnWardofLife")
 local timerWardofLife		= mod:NewCDTimer(30, 62907, nil, nil, nil, 2)
 local timerSystemOverload	= mod:NewBuffActiveTimer(20, 62475, nil, nil, nil, 6)
 local timerFlameVents		= mod:NewCastTimer(10, 312689, nil, nil, nil, 2)
+local timerNextFlameVents   = mod:NewNextTimer(20, 312689, nil, nil, nil, 2)
+
 local timerPursued			= mod:NewTargetTimer(30, 62374, nil, nil, nil, 3)
 
 --local soundPursued = mod:NewSound(62374)
 -- mod:AddBoolOption("HealthFrameBoss", true)
 
+mod.vb.flameVentsRemaining = nil
 
 local guids = {}
 local function buildGuidTable(self)
@@ -44,11 +47,10 @@ end
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 33113, "FlameLeviathan")
 	buildGuidTable(self)
-	if mod:IsDifficulty("normal10","heroic10") then
-		timerWardofLife:Start(-delay)
-	else
-		timerWardofLife:Start(30)
-	end
+
+	self.vb.flameVentsRemaining = nil
+	timerNextFlameVents:Start(-delay)
+	timerWardofLife:Start(-delay)
 end
 
 function mod:OnCombatEnd(wipe)
@@ -75,10 +77,18 @@ end
 function mod:SPELL_AURA_APPLIED(args)
 	local spellId = args.spellId
 	if spellId == 312689 or spellId == 312690 or spellId == 312336 or spellId == 62396 then		-- Flame Vents
+		timerNextFlameVents:Cancel()
 		timerFlameVents:Start()
 	elseif spellId == 312339 or spellId == 312692 or spellId == 62475 then	-- Systems Shutdown / Overload
-		timerSystemOverload:Start()
-		warnSystemOverload:Show()
+        -- Логика заморозки таймера
+        local elapsed, total = timerNextFlameVents:GetTime()
+        if elapsed and total and total > 0 then
+            self.vb.flameVentsRemaining = total - elapsed
+            timerNextFlameVents:Cancel()
+        end
+        
+        timerSystemOverload:Start()
+        warnSystemOverload:Show()
 	elseif spellId == 62374 then	-- Pursued
 		local target = guids[args.destGUID]
 		warnNextPursueSoon:Schedule(25)
@@ -96,8 +106,18 @@ function mod:SPELL_AURA_APPLIED(args)
 end
 
 function mod:SPELL_AURA_REMOVED(args)
-	local spellId = args.spellId
-	if spellId == 312690 or spellId == 312689 or spellId == 62396 then
-		timerFlameVents:Stop()
-	end
+    local spellId = args.spellId
+    if spellId == 312690 or spellId == 312689 or spellId == 62396 then -- Flame vents removed
+        timerFlameVents:Stop()
+        timerNextFlameVents:Start(20)
+    elseif spellId == 312339 or spellId == 312692 or spellId == 62475 then -- Systems Shutdown removed
+
+        -- Возобновление таймера
+        if self.vb.flameVentsRemaining then
+            timerNextFlameVents:Start(self.vb.flameVentsRemaining)
+            self.vb.flameVentsRemaining = nil
+        else
+            timerNextFlameVents:Start()
+        end
+    end
 end
