@@ -11,7 +11,7 @@ mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 312650 313003 64059 313000 64189 312647 63038 312644 312997 314683",
 	"SPELL_CAST_SUCCESS 64144 64465 313001 313002 313027 313028 313000 64189 312647",
 	"SPELL_SUMMON 62979",
-	"SPELL_AURA_APPLIED 312995 312994 312996 63802 63830 63881 312993 313029 64126 313031 63138 312989 63138 63894 64775 313001 313002 313027 313028 64167 64163 64465",
+	"SPELL_AURA_APPLIED 312995 312994 312996 63802 63830 63881 312993 313029 64126 313031 63138 312989 63894 64775 313001 313002 313027 313028 64167 64163 64465 312636 64125 312678",
 	"SPELL_AURA_REMOVED 64465 312995 312989 63894 64775 313029 312993 63830 63881 313001 313002 313027 313028 64167 64163 312995 312994 312996 63802",
 	-- "UNIT_HEALTH",
 	-- "UNIT_DIED",
@@ -190,79 +190,94 @@ function mod:SPELL_SUMMON(args)
 end
 
 function mod:SPELL_AURA_APPLIED(args)
-	local spellId = args.spellId
-	if spellId == 312995 or spellId == 312994 or spellId == 312996 or spellId == 63802 then
-		self:Unschedule(warnBrainLinkWarning)
-		brainLinkTargets[#brainLinkTargets + 1] = args.destName
-		if self.Options.SetIconOnBrainLinkTarget then
-			self:SetIcon(args.destName, self.vb.brainLinkIcon)
-		end
-		self.vb.brainLinkIcon = self.vb.brainLinkIcon - 1
-		if args:IsPlayer() then
-			specWarnBrainLink:Show()
-			specWarnBrainLink:Play("linegather")
-			yellBrainLink:Yell()
-			yellBrainLinkFade:Countdown(spellId)
-			if self.Options.RangeFrame then
-				DBM.RangeCheck:Show(20)
-			end
-		end
-		if #brainLinkTargets == 2 then
-			warnBrainLinkWarning(self)
-		else
-			self:Schedule(0.5, warnBrainLinkWarning, self)
-		end
-	elseif spellId == 63830 or spellId == 63881 or spellId == 312993 or spellId == 313029 then -- Душевная болезнь (Death Coil)
-		if self.Options.SetIconOnFearTarget then
-			self:SetIcon(args.destName, 8, 30)
-		end
-	elseif spellId == 64126 or spellId == 313031 or spellId == 63138 then -- Squeeze
-		warnSqueeze:Show(args.destName)
-		if args:IsPlayer() then
-			yellSqueeze:Yell()
-		end
-	elseif spellId == 312989 or spellId == 63138 then -- Sara's Fervor
-		warnFervor:Show(args.destName)
-		timerFervor:Start(args.destName)
-		if self.Options.SetIconOnFervorTarget then
-			self:SetIcon(args.destName, 7)
-		end
-		if args:IsPlayer() and self:AntiSpam(4, 1) then
-			specWarnFervor:Show()
-			specWarnFervor:Play("targetyou")
-		end
-	elseif (spellId == 63894 or spellId == 64775) then --and self.vb.phase < 2-- Shadowy Barrier of Yogg-Saron (this is happens when p2 starts)
-		self:SetStage(2)
-		warnP2:Show()
-		brainportal2:Start(60)
-		warnBrainPortalSoon:Schedule(57)
-		if self.Options.ShowSaraHealth then
-			DBM.BossHealth:RemoveBoss(33134) --33890
-			DBM.BossHealth:AddBoss(33890, L.Mozg)
-			DBM.BossHealth:AddBoss(33966, L.HevTentacle)
-		end
-	elseif args:IsSpellID(313001, 313002, 313027, 313028, 64167, 64163) then -- Взгляд безумца (reduces sanity)
-		timerLunaricGaze:Start()
-		if self.vb.phase == 3 then
-			specWarnLunaricGaze:Show()
-			brainportal:Cancel()
-			brainportal2:Cancel()
-			warnBrainPortalSoon:Cancel()
-			if self.Options.ShowSaraHealth then
-				DBM.BossHealth:RemoveBoss(33890) --33890
-				DBM.BossHealth:RemoveBoss(33966)
-			end
-		end
-	elseif spellId == 64465 then
-		if self.Options.SetIconOnBeacon then
-			self:ScanForMobs(args.destGUID, 2, beaconIcon, 1, 0.2, 10, "SetIconOnBeacon")
-		end
-		beaconIcon = beaconIcon - 1
-		if beaconIcon == 0 then
-			beaconIcon = 8
-		end
-	end
+    local spellId = args.spellId
+    
+    -- Brain Link (Связь мозга)
+    if args:IsSpellID(312995, 312994, 312996, 63802) then
+        self:Unschedule(warnBrainLinkWarning)
+        brainLinkTargets[#brainLinkTargets + 1] = args.destName
+        if self.Options.SetIconOnBrainLinkTarget then
+            self:SetIcon(args.destName, self.vb.brainLinkIcon)
+        end
+        self.vb.brainLinkIcon = self.vb.brainLinkIcon - 1
+        if args:IsPlayer() then
+            specWarnBrainLink:Show()
+            specWarnBrainLink:Play("linegather")
+            yellBrainLink:Yell()
+            yellBrainLinkFade:Countdown(spellId)
+            if self.Options.RangeFrame then
+                DBM.RangeCheck:Show(20)
+            end
+        end
+        if #brainLinkTargets == 2 then
+            warnBrainLinkWarning(self)
+        else
+            self:Schedule(0.5, warnBrainLinkWarning, self)
+        end
+
+    -- Malady of the Mind / Death Coil (Душевная болезнь)
+    elseif args:IsSpellID(63830, 63881, 312993, 313029) then 
+        if self.Options.SetIconOnFearTarget then
+            self:SetIcon(args.destName, 8, 30)
+        end
+
+    -- Squeeze (Выдавливание)
+    elseif args:IsSpellID(64125, 64126, 312678, 313031) then 
+        warnSqueeze:Show(args.destName)
+        if args:IsPlayer() then
+            yellSqueeze:Yell()
+        end
+
+    -- Sara's Fervor (Рвение Сары)
+    elseif args:IsSpellID(63138, 312636, 312989) then 
+        warnFervor:Show(args.destName)
+        timerFervor:Start(args.destName)
+        if self.Options.SetIconOnFervorTarget then
+            self:SetIcon(args.destName, 7)
+        end
+        if args:IsPlayer() and self:AntiSpam(4, 1) then
+            specWarnFervor:Show()
+            specWarnFervor:Play("targetyou")
+        end
+
+    -- Shadowy Barrier (Переход во 2 фазу)
+    elseif (spellId == 63894 or spellId == 64775) then 
+        self:SetStage(2)
+        warnP2:Show()
+        brainportal2:Start(60)
+        warnBrainPortalSoon:Schedule(57)
+        if self.Options.ShowSaraHealth then
+            DBM.BossHealth:RemoveBoss(33134) 
+            DBM.BossHealth:AddBoss(33890, L.Mozg)
+            DBM.BossHealth:AddBoss(33966, L.HevTentacle)
+        end
+
+    -- Lunatic Gaze (Взгляд безумца)
+    elseif args:IsSpellID(313001, 313002, 313027, 313028, 64167, 64163) then 
+        timerLunaricGaze:Start()
+        if self.vb.phase == 3 then
+            specWarnLunaricGaze:Show()
+            brainportal:Cancel()
+            brainportal2:Cancel()
+            warnBrainPortalSoon:Cancel()
+            if self.Options.ShowSaraHealth then
+                DBM.BossHealth:RemoveBoss(33890)
+                DBM.BossHealth:RemoveBoss(33966)
+            end
+        end
+
+    -- Shadow Beacon (Метка тьмы)
+    elseif spellId == 64465 then
+        if self.Options.SetIconOnBeacon then
+            self:ScanForMobs(args.destGUID, 2, beaconIcon, 1, 0.2, 10, "SetIconOnBeacon")
+        end
+        beaconIcon = beaconIcon - 1
+        if beaconIcon == 0 then
+            beaconIcon = 8
+        end
+    end
 end
+
 
 function mod:SPELL_AURA_REMOVED(args)
 	local spellId = args.spellId
