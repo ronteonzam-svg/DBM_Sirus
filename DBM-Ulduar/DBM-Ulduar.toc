@@ -31,7 +31,7 @@
 ## X-DBM-Mod-LoadZone-deDE: Ulduar
 ## X-Sirus-Update:
 
-# Kologarn(all timers), YoggSaron(brain leave??, phase3 timers??), IronCouncil(DeathRune fix??), Ignis(all timers), FlameLeviathan(FlameVent timer, Freya timer, maybe Thorim, Ignis, Hodir + Follow)
+# Kologarn(all timers), YoggSaron(brain leave??, phase3 timers??), IronCouncil(DeathRune fix??), Ignis(all timers), FlameLeviathan(Freya timer, maybe Thorim, Ignis, Hodir + Follow)
 
 # Chck Auriaya, Freya+Elders
 

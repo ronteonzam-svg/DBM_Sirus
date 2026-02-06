@@ -202,7 +202,8 @@ L:SetOptionLocalization({
 L:SetMiscLocalization({
 	YellPull		= "The chill you feel is the herald of your doom!",
 	HandlerYell		= "Bolster my defenses! Hurry, curse you!",
-	Phase2			= "Surely you can see the futility of it all!",
+	Phase2_1		= "Surely you can see the futility of it all!",
+	Phase2_2		= "Surrender: your death has come!",
 	YellKill		= "Your efforts... are in vain."
 })
 
