@@ -31,6 +31,7 @@ L:SetOptionLocalization({
 
 L:SetMiscLocalization({
 	Charge				= "^%%s glares at (%S+) and lets out",
+		SlowStart			= "Welcome, heroes! You have heard the call of the Argent Vanguard and answered without hesitation! In this Coliseum, you will face the most dangerous opponents. Those of you who survive these trials will be inducted into the ranks of the Argent Vanguard, which will march on to Icecrown Citadel.",
 	CombatStart			= "Hailing from the deepest, darkest caverns of the Storm Peaks, Gormok the Impaler! Battle on, heroes!",
 	Phase2				= "Steel yourselves, heroes, for the twin terrors, Acidmaw and Dreadscale, enter the arena!",
 	Phase3				= "The air itself freezes with the introduction of our next combatant, Icehowl! Kill or be killed, champions!",
