@@ -27,8 +27,6 @@ mod:RegisterEventsInCombat(
 	"UNIT_DIED"
 )
 
-local myPomoi5 = select(4, DBM:GetMyPlayerInfo())
-
 local warnImpaleOn			= mod:NewStackAnnounce(66331, 2, nil, "Tank|Healer")
 local warnFireBomb			= mod:NewSpellAnnounce(66317, 3, nil, false)
 local warnBreath			= mod:NewSpellAnnounce(66689, 2)
@@ -51,15 +49,17 @@ local specWarnChargeNear	= mod:NewSpecialWarningClose(52311, nil, nil, nil, 3, 2
 local specWarnFrothingRage	= mod:NewSpecialWarningDispel(66759, "RemoveEnrage", nil, nil, 1, 2)
 
 local enrageTimer			= mod:NewBerserkTimer(223)
-local timerCombatStart		= mod:NewCombatTimer(16.5)
+local timerCombatStart		= mod:NewCombatTimer(16.4)
 local timerNextBoss			= mod:NewTimer(190, "TimerNextBoss", 2457, nil, nil, 1)
 local timerSubmerge			= mod:NewTimer(45, "TimerSubmerge", "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendBurrow.blp", nil, nil, 6)
 local timerEmerge			= mod:NewTimer(10, "TimerEmerge", "Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp", nil, nil, 6)
 
 local timerBreath			= mod:NewCastTimer(5, 66689, nil, nil, nil, 3)--3 or 5? is it random target or tank?
-local timerNextStomp		= mod:NewNextTimer(myPomoi5 == 5 and 13.5 or 15, 66330, nil, nil, nil, 2, nil, CL.INTERRUPT_ICON, nil, mod:IsSpellCaster() and 3 or nil, 3)
-local timerNextImpale		= mod:NewNextTimer(10, 66331, nil, "Tank|Healer", nil, 5, nil, CL.TANK_ICON)
-local timerRisingAnger      = mod:NewNextTimer(20.5, 66636, nil, nil, nil, 1)
+local timerNextStomp		= mod:NewNextTimer(15, 66330, nil, nil, nil, 2, nil, CL.INTERRUPT_ICON, nil, mod:IsSpellCaster() and 3 or nil, 3)
+
+
+local timerNextImpale		= mod:NewNextTimer(8.8, 66331, nil, "Tank|Healer", nil, 5, nil, CL.TANK_ICON)
+local timerRisingAnger      = mod:NewNextTimer(21.4, 66636, nil, nil, nil, 1)
 local timerStaggeredDaze	= mod:NewBuffActiveTimer(15, 66758, nil, nil, nil, 5, nil, CL.DAMAGE_ICON)
 local timerNextCrash		= mod:NewCDTimer(51, 66683, nil, nil, nil, 2, nil, CL.MYTHIC_ICON)
 local timerSweepCD			= mod:NewCDTimer(21, 66794, nil, "Melee", nil, 3)
@@ -112,6 +112,7 @@ function mod:OnCombatStart(delay)
 	self.vb.DreadscaleDead = false
 	self.vb.AcidmawDead = false
 	self:SetStage(1)
+	timerNextImpale:Start(8.4-delay) 
 	specWarnSilence:Schedule(14-delay)
 	specWarnSilence:ScheduleVoice(14-delay, "silencesoon")
 	if self:IsHeroic() then
@@ -123,10 +124,12 @@ function mod:OnCombatStart(delay)
 	end
 	timerNextStomp:Start(15-delay)
 	updateHealthFrame(1)
+	self.vb.GormokStartSlowFlag = false
 end
 
 function mod:OnCombatEnd(wipe)
 	DBM:FireCustomEvent("DBM_EncounterEnd", 34796, "The Beasts of Northrend", wipe)
+	self.vb.GormokStartSlowFlag = false
 	if self.Options.RangeFrame then
 		DBM.RangeCheck:Hide()
 	end
@@ -258,9 +261,16 @@ function mod:SPELL_AURA_APPLIED_DOSE(args)
 	elseif args.spellId == 66636 then	-- Rising Anger
 		local amount = args.amount or 1
 		WarningSnobold:Show()
-		if amount <= 3 then
+
+		--[[if amount <= 3 then
 			timerRisingAnger:Show()
 		elseif amount >= 3 then
+			specWarnAnger3:Show(amount)
+			specWarnAnger3:Play("stackhigh")
+		end--]]
+
+		timerRisingAnger:Show()
+		if amount >= 3 then
 			specWarnAnger3:Show(amount)
 			specWarnAnger3:Play("stackhigh")
 		end
@@ -325,8 +335,15 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg, _, _, _, target)
 end
 
 function mod:CHAT_MSG_MONSTER_YELL(msg)
+	if msg == L.SlowStart or msg:find(L.SlowStart) then
+		self.vb.GormokStartSlowFlag = true
+		timerCombatStart:Start(51.4)
+	end 
+	
 	if msg == L.CombatStart or msg:find(L.CombatStart) then
-		timerCombatStart:Start()
+		if not self.vb.GormokStartSlowFlag then
+			timerCombatStart:Start()
+		end
 	elseif msg == L.Phase2 or msg:find(L.Phase2) then
 		self:ScheduleMethod(13.5, "WormsEmerge")
 		timerCombatStart:Start(11)
