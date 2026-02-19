@@ -3,7 +3,7 @@ local L   = mod:GetLocalizedStrings()
 
 local CL  = DBM_COMMON_L
 
-mod:SetRevision("20220518110528")
+mod:SetRevision("20260219000000")
 mod:SetMinSyncRevision(7007)
 mod:SetCreatureID(34780)
 mod:SetMinCombatTime(30)
@@ -18,7 +18,9 @@ mod:RegisterEvents(
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 66532 66963 66964 66965",
 	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66269 67898 67899 67900 66197 68123 68124 68125",
-	"SPELL_AURA_APPLIED 67051 67050 67049 66237 66197 68123 68124 68125 66334 67905 67906 67907 66532 66963 66964 66965",
+	"SPELL_AURA_APPLIED 67051 67050 67049 66237 66197 68123 68124 68125 66334 67905 67906 67907 66532 66963 66964 66965 66228 67106 67107 67108",
+	"SPELL_AURA_APPLIED_DOSE 66228 67106 67107 67108",
+	"SPELL_AURA_REMOVED_DOSE 66228 67106 67107 67108",
 	"SPELL_AURA_REMOVED 67051 67050 67049 66237",
 	"SPELL_DAMAGE 66877 67070 67071 67072 66496 68716 68717 68718",
 	"SPELL_MISSED 66877 67070 67071 67072 66496 68716 68717 68718",
@@ -36,15 +38,16 @@ local specWarnFlame             = mod:NewSpecialWarningRun(66877, nil, nil, 2, 4
 local specWarnFlameGTFO         = mod:NewSpecialWarningMove(66877, nil, nil, 2, 4, 2)
 local specWarnFlesh             = mod:NewSpecialWarningYou(66237, nil, nil, nil, 1, 2)
 local specWarnKiss              = mod:NewSpecialWarningCast(66334, "SpellCaster", nil, 2, 1, 2)
-local specWarnNetherPower       = mod:NewSpecialWarningDispel(67009, "MagicDispeller", nil, nil, 1, 2)
 local specWarnFelInferno        = mod:NewSpecialWarningMove(66496, nil, nil, nil, 1, 2)
 local SpecWarnFelFireball       = mod:NewSpecialWarningInterrupt(66532, "HasInterrupt", nil, 2, 1, 2)
 local SpecWarnFelFireballDispel = mod:NewSpecialWarningDispel(66532, "RemoveMagic", nil, 2, 1, 2)
 
+local specWarnNetherPower       = mod:NewSpecialWarningCount(67009, nil, nil, nil, 1, 2)
+
 local timerCombatStart          = mod:NewCombatTimer(20)                         --roleplay for first pull 34
-local timerFlame                = mod:NewTargetTimer(8, 66197, nil, nil, nil, 3) --There are 8 debuff Ids. Since we detect first to warn, use an 8sec timer to cover duration of trigger spell and damage debuff.
+local timerFlame                = mod:NewTargetTimer(8, 66197, nil, nil, nil, 3)
 local timerFlameCD              = mod:NewCDTimer(30, 66197, nil, nil, nil, 3)
-local timerNetherPowerCD        = mod:NewCDTimer(42.5, 67009, nil, "MagicDispeller", nil, 5, nil, CL.MAGIC_ICON)
+local timerNetherPowerCD        = mod:NewCDTimer(42.5, 67009, nil, nil, nil, 5, nil, CL.MAGIC_ICON)
 local timerFlesh                = mod:NewTargetTimer(12, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
 local timerFleshCD              = mod:NewCDTimer(23, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
 local timerPortalCD             = mod:NewCDTimer(120, 66269, nil, nil, nil, 1)
@@ -96,7 +99,6 @@ do
 	local twipe = table.wipe
 	local lines, sortedLines = {}, {}
 	local function addLine(key, value)
-		-- sort by insertion order
 		lines[key] = value
 		sortedLines[#sortedLines + 1] = key
 	end
@@ -147,8 +149,6 @@ end
 
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(66228, 67106, 67107, 67108) then -- Nether Power
-		specWarnNetherPower:Show(args.sourceName)
-		specWarnNetherPower:Play("dispelboss")
 		timerNetherPowerCD:Start()
 	elseif args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
 		timerVolcanoCD:Start()
@@ -198,6 +198,24 @@ function mod:SPELL_AURA_APPLIED(args)
 	elseif args:IsSpellID(66532, 66963, 66964, 66965) then -- Fel Fireball (announce if tank gets debuff for dispel)
 		SpecWarnFelFireballDispel:Show(args.destName)
 		SpecWarnFelFireballDispel:Play("helpdispel")
+	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
+		local diff = DBM:GetCurrentInstanceDifficulty()
+		local stacks = (diff == "heroic25" or diff == "normal25") and 10 or 5
+		specWarnNetherPower:Show(stacks)
+		specWarnNetherPower:Play("dispelboss")
+	end
+end
+
+function mod:SPELL_AURA_APPLIED_DOSE(args)
+	if args:IsSpellID(66228, 67106, 67107, 67108) then
+		specWarnNetherPower:Show(args.amount or 1)
+		specWarnNetherPower:Play("dispelboss")
+	end
+end
+
+function mod:SPELL_AURA_REMOVED_DOSE(args)
+	if args:IsSpellID(66228, 67106, 67107, 67108) then
+		specWarnNetherPower:Show(args.amount or 0)
 	end
 end
 
@@ -212,6 +230,8 @@ function mod:SPELL_AURA_REMOVED(args)
 			self:RemoveIcon(args.destName)
 		end
 		clearIncinerateTarget(self, args.destName)
+	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
+		specWarnNetherPower:Show(0)
 	end
 end
 
