@@ -5445,9 +5445,9 @@ do
 			if event ~= "TIMER_RECOVERY" then
 				--add pull count
 				if mod.stats and not mod.noStatistics and not mod.hasChallenge then
-					if not mod.stats[statVarTable[savedDifficulty] .. "Pulls"] then mod.stats[statVarTable[savedDifficulty] .. "Pulls"] = 0 end
-					mod.stats[statVarTable[savedDifficulty] .. "Pulls"] = mod.stats
-						[statVarTable[savedDifficulty] .. "Pulls"] + 1
+					local statKey = statVarTable[savedDifficulty] or "normal" -- fallback to "normal" if difficulty is unknown (e.g. custom server keys)
+					if not mod.stats[statKey .. "Pulls"] then mod.stats[statKey .. "Pulls"] = 0 end
+					mod.stats[statKey .. "Pulls"] = mod.stats[statKey .. "Pulls"] + 1
 				end
 				--show speed timer
 				if self.Options.AlwaysShowSpeedKillTimer2 and mod.stats and not mod.ignoreBestkill and not mod.noStatistics then
@@ -5702,15 +5702,16 @@ do
 					local bossesKilled = mod.numBoss - mod.vb.bossLeft
 					wipeHP = wipeHP .. " (" .. BOSSES_KILLED:format(bossesKilled, mod.numBoss) .. ")"
 				end
-				local totalPulls = mod.stats[statVarTable[savedDifficulty] .. "Pulls"]
-				local totalKills = mod.stats[statVarTable[savedDifficulty] .. "Kills"]
+				local statKey = statVarTable[savedDifficulty] or "normal" -- fallback to "normal" if difficulty is unknown (e.g. custom server keys)
+				local totalPulls = mod.stats[statKey .. "Pulls"]
+				local totalKills = mod.stats[statKey .. "Kills"]
 				if self.Options.Memes then --Waini
 					self:PlaySoundFile(memFileDefeat:format(soundDefeat[math.random(#soundDefeat)]))
 					--DBM:Debug(soundDefeat, 3)
 				end
 				if thisTime < 30 then -- Normally, one attempt will last at least 30 sec.
 					totalPulls = totalPulls - 1
-					mod.stats[statVarTable[savedDifficulty] .. "Pulls"] = totalPulls
+					mod.stats[statKey .. "Pulls"] = totalPulls
 					if self.Options.ShowDefeatMessage then
 						self:AddMsg(L.COMBAT_ENDED_AT:format(difficultyText .. name, wipeHP, strFromTime(thisTime)))
 						--No reason to GCE it here, so omited on purpose.
@@ -6226,8 +6227,13 @@ function DBM:GetCurrentInstanceDifficulty()
 			else
 				return "heroic5", difficultyName .. " - ", difficulty, maxPlayers
 			end
+		elseif difficulty == 3 then
+			-- Custom server mythic/challenge keys with difficulty 3 in party instances
+			return "mythic", difficultyName .. " - ", difficulty, maxPlayers
 		end
 	end
+	-- Fallback: unknown instance type/difficulty — return as normal5 to avoid nil crashes
+	return "normal5", (difficultyName or "?") .. " - ", difficulty or 1, maxPlayers or 5
 end
 
 function DBM:GetCurrentArea()
