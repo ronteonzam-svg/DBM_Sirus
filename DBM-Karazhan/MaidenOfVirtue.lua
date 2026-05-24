@@ -79,7 +79,7 @@ function mod:OnCombatStart(delay)
 		timerRepentanceCDob:Start(45-delay)
 		warningRepentanceSoon:Schedule(40-delay)
 		if self.Options.RangeFrame then
-			DBM.RangeCheck:Show(10)
+			DBM.RangeCheck:Show(12)
 		end
 	elseif self:IsDifficulty("heroic10") then
 		timerRepentanceCD:Start(56.5 - delay)

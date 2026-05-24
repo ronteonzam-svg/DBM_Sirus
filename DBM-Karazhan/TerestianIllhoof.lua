@@ -1,20 +1,20 @@
 local mod = DBM:NewMod("TerestianIllhoof", "DBM-Karazhan")
 local L   = mod:GetLocalizedStrings()
 
-mod:SetRevision("20210502220000") -- fxpw check 202206151120000
+mod:SetRevision("20260405000000")
 mod:SetCreatureID(15688)
 
 mod:SetBossHealthInfo(
 	15688, L.name
 )
 
---mod:RegisterCombat("yell", L.DBM_TI_YELL_PULL)
 mod:RegisterCombat("combat")
---17229--imp, for future use
+--17229--Kil'rek, for future use
 
 mod:RegisterEvents(
 	"SPELL_AURA_APPLIED 305351 30115 305367 305360",
-	"SPELL_CAST_START 305345"
+	"SPELL_CAST_START 305345",
+	"UNIT_DIED"
 )
 
 -- local warningWeakened	= mod:NewTargetAnnounce(30065, 2)
@@ -29,19 +29,24 @@ mod:RegisterEvents(
 -- local timerSacrifice	= mod:NewTargetTimer(30, 30115)
 -- local timerSacrificeCD	= mod:NewNextTimer(43, 30115)
 
+
+-- Обычка
+local timerImpRespawn = mod:NewNextTimer(43, 17229, "KilrekRespawn", nil, nil, nil, 30066)
+local timerSacrifice = mod:NewCDTimer(42, 30115)
+
 local warningHandCast = mod:NewCastAnnounce(305345, 3)
 -- local warnSound						= mod:NewSoundAnnounce()
 
+-- Героик
 local timerHandCD    = mod:NewCDTimer(15, 305345)
 local timerMarkCD    = mod:NewCDTimer(33, 305351)
-local timerSacrifice = mod:NewCDTimer(42, 30115)
 
 local WarnMark     = mod:NewTargetAnnounce(305351, 3)
 local specWarnMark = mod:NewSpecialWarningYou(305351)
 local specWarnSeed = mod:NewSpecialWarningSpell(305360, "Tank")
 local specWarnDart = mod:NewSpecialWarningStack(305367, nil, 7)
 
--- local berserkTimer		        = mod:NewBerserkTimer(600)
+local berserkTimer		        = mod:NewBerserkTimer(600)
 
 mod.vb.tolik = true
 
@@ -135,5 +140,12 @@ function mod:SPELL_AURA_APPLIED(args)
 		specWarnDart:Show(args.amount)
 	elseif args:IsSpellID(305360) and args:IsPlayer() then
 		specWarnSeed:Show()
+	end
+end
+
+function mod:UNIT_DIED(args)
+	local cid = self:GetCIDFromGUID(args.destGUID)
+	if cid == 17229 then -- Kil'rek
+		timerImpRespawn:Start()
 	end
 end
