@@ -17,7 +17,7 @@ mod:RegisterEvents(
 
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 66532 66963 66964 66965",
-	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66269 67898 67899 67900 66197 68123 68124 68125",
+	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66269 67898 67899 67900 66263 66264 67103 67104 67105 68404 68405 68406 66197 68123 68124 68125",
 	"SPELL_AURA_APPLIED 67051 67050 67049 66237 66197 68123 68124 68125 66334 67905 67906 67907 66532 66963 66964 66965 66228 67106 67107 67108",
 	"SPELL_AURA_APPLIED_DOSE 66228 67106 67107 67108",
 	"SPELL_AURA_REMOVED_DOSE 66228 67106 67107 67108",
@@ -28,7 +28,7 @@ mod:RegisterEventsInCombat(
 	"SPELL_PERIODIC_HEAL"
 )
 
-local MyRealm                   = select(4, DBM:GetMyPlayerInfo())
+
 local warnPortalSoon            = mod:NewSoonAnnounce(66269, 3)
 local warnVolcanoSoon           = mod:NewSoonAnnounce(66258, 3)
 local warnFlame                 = mod:NewTargetAnnounce(66197, 4)
@@ -62,7 +62,16 @@ mod:RemoveOption("HealthFrame")
 mod:AddBoolOption("IncinerateShieldFrame", false, "misc")
 
 mod.vb.fleshCount = 0
+mod.vb.netherPowerStacks = 0
 local incinerateFleshTargetName
+
+local function PortalLoop(self)
+	if self:IsInCombat() then
+		timerPortalCD:Start(120)
+		warnPortalSoon:Schedule(115)
+		self:Schedule(120, PortalLoop, self)
+	end
+end
 
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 34780, "Lord Jaraxxus")
@@ -71,8 +80,11 @@ function mod:OnCombatStart(delay)
 		DBM.BossHealth:AddBoss(34780, L.name)
 	end
 	self.vb.fleshCount = 0
-	timerPortalCD:Start(22 - delay)
-	warnPortalSoon:Schedule(17 - delay)
+	self.vb.netherPowerStacks = 0
+	self.vb.netherPowerPlayVoice = false
+	timerPortalCD:Start(20 - delay)
+	warnPortalSoon:Schedule(15 - delay)
+	self:Schedule(20 - delay, PortalLoop, self)
 	timerVolcanoCD:Start(82 - delay)
 	warnVolcanoSoon:Schedule(77 - delay)
 	timerNetherPowerCD:Start(15 - delay)
@@ -87,6 +99,7 @@ function mod:OnCombatEnd(wipe)
 		DBM.InfoFrame:Hide()
 	end
 	DBM.BossHealth:Clear()
+	self:Unschedule(PortalLoop)
 end
 
 local setIncinerateTarget, clearIncinerateTarget, updateInfoFrame
@@ -140,6 +153,14 @@ do
 	end
 end
 
+local function warnNetherPower(self)
+	specWarnNetherPower:Show(self.vb.netherPowerStacks)
+	if self.vb.netherPowerPlayVoice and self.vb.netherPowerStacks > 0 then
+		specWarnNetherPower:Play("dispelboss")
+	end
+	self.vb.netherPowerPlayVoice = false
+end
+
 function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(66532, 66963, 66964, 66965) and self:CheckInterruptFilter(args.sourceGUID, false, true) then -- Fel Fireball (track cast for interupt, only when targeted)
 		SpecWarnFelFireball:Show(args.sourceName)
@@ -153,9 +174,10 @@ function mod:SPELL_CAST_SUCCESS(args)
 	elseif args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
 		timerVolcanoCD:Start()
 		warnVolcanoSoon:Schedule(110)
-	elseif args:IsSpellID(66269, 67898, 67899, 67900) then -- Nether Portal
-		timerPortalCD:Start()
-		warnPortalSoon:Schedule(110)
+	--elseif args:IsSpellID(66263, 66264, 66269, 67103, 67104, 67105, 67898, 67899, 67900, 68404, 68405, 68406) then -- Nether Portal
+	--	timerPortalCD:Start()
+	--	warnPortalSoon:Schedule(110)
+	--	print("|cff00ff00[DBM Debug]|r Врата пустоты сработали! ID заклинания: " .. tostring(args.spellId))
 	elseif args:IsSpellID(66197, 68123, 68124, 68125) then -- Legion Flame
 		warnFlame:Show(args.destName)
 	end
@@ -201,21 +223,30 @@ function mod:SPELL_AURA_APPLIED(args)
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
 		local diff = DBM:GetCurrentInstanceDifficulty()
 		local stacks = (diff == "heroic25" or diff == "normal25") and 10 or 5
-		specWarnNetherPower:Show(stacks)
-		specWarnNetherPower:Play("dispelboss")
+		self.vb.netherPowerStacks = args.amount or stacks
+		self.vb.netherPowerPlayVoice = true
+		self:Unschedule(warnNetherPower)
+		self:Schedule(0.15, warnNetherPower, self)
 	end
 end
 
 function mod:SPELL_AURA_APPLIED_DOSE(args)
 	if args:IsSpellID(66228, 67106, 67107, 67108) then
-		specWarnNetherPower:Show(args.amount or 1)
-		specWarnNetherPower:Play("dispelboss")
+		self.vb.netherPowerStacks = args.amount or 1
+		self.vb.netherPowerPlayVoice = true
+		self:Unschedule(warnNetherPower)
+		self:Schedule(0.15, warnNetherPower, self)
 	end
 end
 
 function mod:SPELL_AURA_REMOVED_DOSE(args)
 	if args:IsSpellID(66228, 67106, 67107, 67108) then
-		specWarnNetherPower:Show(args.amount or 0)
+		local amount = args.amount or 0
+		if not self.vb.netherPowerStacks or amount < self.vb.netherPowerStacks then
+			self.vb.netherPowerStacks = amount
+			self:Unschedule(warnNetherPower)
+			self:Schedule(0.15, warnNetherPower, self)
+		end
 	end
 end
 
@@ -231,7 +262,9 @@ function mod:SPELL_AURA_REMOVED(args)
 		end
 		clearIncinerateTarget(self, args.destName)
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
-		specWarnNetherPower:Show(0)
+		self.vb.netherPowerStacks = 0
+		self:Unschedule(warnNetherPower)
+		self:Schedule(0.15, warnNetherPower, self)
 	end
 end
 
