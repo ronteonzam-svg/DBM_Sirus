@@ -14,21 +14,22 @@ mod:RegisterEventsInCombat(
 	"SPELL_AURA_REMOVED 42730 59735",
 	"CHAT_MSG_MONSTER_YELL",
 	"UNIT_DIED",
-	"UNIT_SPELLCAST_SUCCEEDED boss1"
+	"UNIT_SPELLCAST_SUCCEEDED boss1 target focus"
 )
 
 local warningWoeStrike	= mod:NewTargetNoFilterAnnounce(42730, 2, nil, "RemoveCurse", 2)
 
-local specWarnSpelllock	= mod:NewSpecialWarningCast(42729, "SpellCaster", nil, 2, 1, 2)
+local specWarnStaggeringRoar	= mod:NewSpecialWarningCast(42708, nil, nil, nil, 1, 2)
+local specWarnDreadfulRoar		= mod:NewSpecialWarningCast(42729, nil, nil, nil, 1, 2)
 local specWarnSmash		= mod:NewSpecialWarningDodge(42723, "Tank", nil, nil, 1, 2)
-local specWarnShadowAxe		= mod:NewSpecialWarningDodge(42751, nil, nil, nil, 3, 2)
-local specWarnShadowAxeYou	= mod:NewSpecialWarningYou(42751, nil, nil, nil, 3, 2)
-local warnShadowAxeTarget	= mod:NewTargetAnnounce(42751, 3)
+local specWarnAxe		= mod:NewSpecialWarningDodge(42748, nil, nil, nil, 2, 2)
+local specWarnAxeReturn	= mod:NewSpecialWarning("SpecWarnAxeReturn", "Melee", nil, nil, 1, nil, nil, 42748, 42748)
+specWarnAxeReturn.icon	= select(3, GetSpellInfo(42748))
 
 local timerSmash		= mod:NewCastTimer(3, 42723)
 local timerSmashCD		= mod:NewCDTimer(13, 42723)
 local timerWoeStrike	= mod:NewTargetTimer(10, 42723, nil, "RemoveCurse", nil, 5, nil, DBM_COMMON_L.CURSE_ICON)
-local timerShadowAxe	= mod:NewBuffActiveTimer(10, 42751, nil, nil, nil, 3)
+local timerAxeReturn	= mod:NewTimer(8, "TimerAxeReturn", 42748, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, 42748)
 
 mod:AddSetIconOption("WoeStrikeIcon", 42730, true, false, {8})
 
@@ -43,9 +44,12 @@ function mod:SPELL_CAST_START(args)
 		specWarnSmash:Play("shockwave")
 		timerSmash:Start()
 		timerSmashCD:Start()
-	elseif args:IsSpellID(42708, 42729, 59708, 59734) then
-		specWarnSpelllock:Show()
-		specWarnSpelllock:Play("stopcast")
+	elseif args:IsSpellID(42708, 59708) then
+		specWarnStaggeringRoar:Show()
+		specWarnStaggeringRoar:Play("stopcast")
+	elseif args:IsSpellID(42729, 59734) then
+		specWarnDreadfulRoar:Show()
+		specWarnDreadfulRoar:Play("stopcast")
 	end
 end
 
@@ -83,30 +87,17 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 	end
 end
 
-function mod:UNIT_SPELLCAST_SUCCEEDED(_, spellName)
-	if spellName == GetSpellInfo(42863) then -- Scourge Resurrection
-		self:SetStage(2)
-	elseif spellName == GetSpellInfo(42751) then -- Shadow Axe
-		self:BossTargetScanner(UnitGUID("boss1"), "AxeTarget", 0.05, 10)
-		self:ScheduleMethod(0.55, "AxeTargetFallback")
-		timerShadowAxe:Start()
+function mod:UNIT_SPELLCAST_SUCCEEDED(uId, spellName, _, _, spellId)
+	if spellName == GetSpellInfo(42863) or spellId == 42863 then -- Scourge Resurrection
+		if self:AntiSpam(3, "Resurrection") then
+			self:SetStage(2)
+		end
+	elseif spellName == GetSpellInfo(42748) or spellId == 42748 or spellName == "Теневой топор" then
+		if self:AntiSpam(2, "ShadowAxe") then
+			timerAxeReturn:Start()
+			specWarnAxe:Show()
+			DBM:PlaySoundFile("Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg")
+			specWarnAxeReturn:Schedule(8)
+		end
 	end
-end
-
-function mod:AxeTarget(targetname)
-	self:UnscheduleMethod("AxeTargetFallback")
-	if not targetname then return end
-	warnShadowAxeTarget:Show(targetname)
-	if targetname == UnitName("player") then
-		specWarnShadowAxeYou:Show()
-		specWarnShadowAxeYou:Play("runaway")
-	else
-		specWarnShadowAxe:Show()
-		specWarnShadowAxe:Play("watchstep")
-	end
-end
-
-function mod:AxeTargetFallback()
-	specWarnShadowAxe:Show()
-	specWarnShadowAxe:Play("watchstep")
 end

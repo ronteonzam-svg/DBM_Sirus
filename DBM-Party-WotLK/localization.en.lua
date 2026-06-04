@@ -555,6 +555,19 @@ L:SetGeneralLocalization({
 	name = "Ingvar the Plunderer"
 })
 
+L:SetTimerLocalization({
+	TimerAxeReturn		= "Axe Return"
+})
+
+L:SetWarningLocalization({
+	SpecWarnAxeReturn	= "Shadow Axe is returning!"
+})
+
+L:SetOptionLocalization({
+	SpecWarnAxeReturn	= "Special warning for axe return",
+	TimerAxeReturn		= "Show timer for axe return"
+})
+
 L:SetMiscLocalization({
 	YellIngvarPhase2= "I return! A second chance to carve your skull!",
 	YellCombatEnd	= "No! I can do... better! I can..."
