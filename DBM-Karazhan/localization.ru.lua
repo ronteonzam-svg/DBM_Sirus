@@ -136,8 +136,8 @@ L:SetOptionLocalization{
 }
 
 L:SetMiscLocalization{
-	DBM_CURA_YELL_PULL		= "Галерея только для гостей.",
-	DBM_CURA_YELL_OOM		= "Ваш запрос не может быть выполнен."
+	DBM_CURA_YELL_OOM		= "Ваш запрос не может быть обработан",
+	DBM_CURA_YELL_P2		= "В случае неподчинения будут приняты меры"
 }
 
 
@@ -152,6 +152,7 @@ L:SetWarningLocalization{
 }
 
 L:SetTimerLocalization{
+    KilrekRespawn = "Возрождение Кил'река"
 }
 
 L:SetOptionLocalization{

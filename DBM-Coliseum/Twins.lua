@@ -29,6 +29,7 @@ local warnTouchDebuff     = mod:NewAnnounce("WarningTouchDebuff", 2, 66823)
 local warnPoweroftheTwins = mod:NewAnnounce("WarningPoweroftheTwins2", 4, nil, "Healer")
 
 local specWarnSpecial           = mod:NewSpecialWarning("SpecWarnSpecial") --Change Color, No voice ideas for this
+local specWarnSpecialInstruction = mod:NewSpecialWarning("SpecWarnSpecialInstruction")
 local specWarnSwitch            = mod:NewSpecialWarning("SpecWarnSwitchTarget", nil, nil, nil, 1, 2, nil, nil, 65875)
 local specWarnKickNow           = mod:NewSpecialWarning("SpecWarnKickNow", "HasInterrupt", nil, nil, 1, 2, nil, nil,
 	65875)
@@ -48,15 +49,39 @@ local timerAnubRoleplay = mod:NewTimer(47.5, "TimerAnubRoleplay", 43827, nil, ni
 
 mod:AddBoolOption("SpecialWarnOnDebuff", false, "announce")
 mod:AddBoolOption("SetIconOnDebuffTarget", false)
-mod:AddInfoFrameOption(67258, true)
+mod:AddInfoFrameOption(nil, true)
+mod.localization.options.InfoFrame = L.InfoFrameOption or mod.localization.options.InfoFrame
+mod:AddBoolOption("InfoFrameSetPoint", false, "misc")
 mod:AddBoolOption("HealthFrame", false)
 
 local lightEssence, darkEssence = DBM:GetSpellInfo(65686), DBM:GetSpellInfo(65684)
 local debuffTargets = {}
 mod.vb.debuffIcon = 1
 
+local updateInfoFrame
+
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 34497, "The Twin Val'kyr")
+	self.vb.usedSpecials = {
+		vortexLight = false,
+		vortexDark = false,
+		pactLight = false,
+		pactDark = false
+	}
+	self.vb.activeSpecial = nil
+	self.vb.lastRaidColor = L.None
+	self.vb.lastCatcherColor = L.None
+	if self.Options.InfoFrame then
+		DBM.InfoFrame:SetHeader(L.name or "Валь'киры-близнецы")
+		DBM.InfoFrame:Show(7, "function", updateInfoFrame, false, false)
+		if self.Options.InfoFrameSetPoint then
+			local frame = _G["DBMInfoFrame"]
+			if frame then
+				frame:ClearAllPoints()
+				frame:SetPoint("CENTER", UIParent, "CENTER", -250, -100)
+			end
+		end
+	end
 	timerSpecial:Start(-delay)
 	warnSpecial:Schedule(40 - delay)
 	--timerAchieve:Start(-delay)
@@ -73,34 +98,75 @@ function mod:OnCombatEnd()
 	if self.Options.InfoFrame then
 		DBM.InfoFrame:Hide()
 	end
+	local frame = _G["DBMInfoFrame"]
+	if frame then
+		frame:ClearAllPoints()
+		frame:SetPoint(DBM.Options.InfoFramePoint, UIParent, DBM.Options.InfoFramePoint, DBM.Options.InfoFrameX, DBM.Options.InfoFrameY)
+	end
+end
+
+function mod:ClearActiveSpecial()
+	self.vb.activeSpecial = nil
+end
+
+function mod:CheckAndResetCycle()
+	if self.vb.usedSpecials.vortexLight and self.vb.usedSpecials.vortexDark and self.vb.usedSpecials.pactLight and self.vb.usedSpecials.pactDark then
+		self.vb.usedSpecials.vortexLight = false
+		self.vb.usedSpecials.vortexDark = false
+		self.vb.usedSpecials.pactLight = false
+		self.vb.usedSpecials.pactDark = false
+	end
 end
 
 do
-	local function SpecialAbility(debuff)
-		if not debuff then
-			specWarnSpecial:Show()
-		end
+	local function SpecialAbility()
 		timerSpecial:Start()
 		warnSpecial:Schedule(40)
 	end
 
 	function mod:SPELL_CAST_START(args)
 		if args:IsSpellID(66046, 67206, 67207, 67208) then -- Light Vortex
-			local debuff = DBM:UnitDebuff("player", lightEssence)
-			SpecialAbility(debuff)
+			self.vb.usedSpecials.vortexLight = true
+			self.vb.activeSpecial = "vortexLight"
+			self.vb.lastRaidColor = L.Light
+			self.vb.lastCatcherColor = L.Dark
+			self:CheckAndResetCycle()
+			specWarnSpecialInstruction:Show(L.Raid .. L.Light .. " |cffffffff/|r " .. L.Catchers .. L.Dark)
+			self:UnscheduleMethod("ClearActiveSpecial")
+			self:ScheduleMethod(5, "ClearActiveSpecial")
+			SpecialAbility()
 		elseif args:IsSpellID(66058, 67182, 67183, 67184) then -- Dark Vortex
-			local debuff = DBM:UnitDebuff("player", darkEssence)
-			SpecialAbility(debuff)
+			self.vb.usedSpecials.vortexDark = true
+			self.vb.activeSpecial = "vortexDark"
+			self.vb.lastRaidColor = L.Dark
+			self.vb.lastCatcherColor = L.Light
+			self:CheckAndResetCycle()
+			specWarnSpecialInstruction:Show(L.Raid .. L.Dark .. " |cffffffff/|r " .. L.Catchers .. L.Light)
+			self:UnscheduleMethod("ClearActiveSpecial")
+			self:ScheduleMethod(5, "ClearActiveSpecial")
+			SpecialAbility()
 		elseif args:IsSpellID(65875, 67303, 67304, 67305) then -- Twin's Pact
+			self.vb.usedSpecials.pactDark = true
+			self.vb.activeSpecial = "pactDark"
+			self.vb.lastRaidColor = L.Light
+			self.vb.lastCatcherColor = L.Dark
+			self:CheckAndResetCycle()
+			specWarnSpecialInstruction:Show(L.Raid .. L.Light .. " |cffffffff/|r " .. L.Catchers .. L.Dark)
 			timerHeal:Start()
-			SpecialAbility(true)
+			SpecialAbility()
 			if self:GetUnitCreatureId("target") == 34497 then -- if lightbane, then switch to darkbane
 				specWarnSwitch:Show()
 				specWarnSwitch:Play("changetarget")
 			end
 		elseif args:IsSpellID(65876, 67306, 67307, 67308) then -- Light Pact
+			self.vb.usedSpecials.pactLight = true
+			self.vb.activeSpecial = "pactLight"
+			self.vb.lastRaidColor = L.Dark
+			self.vb.lastCatcherColor = L.Light
+			self:CheckAndResetCycle()
+			specWarnSpecialInstruction:Show(L.Raid .. L.Dark .. " |cffffffff/|r " .. L.Catchers .. L.Light)
 			timerHeal:Start()
-			SpecialAbility(true)
+			SpecialAbility()
 			if self:GetUnitCreatureId("target") == 34496 then -- if darkbane, then switch to lightbane
 				specWarnSwitch:Show()
 				specWarnSwitch:Play("changetarget")
@@ -141,7 +207,7 @@ do
 		[67261] = 1200000,
 		[67258] = 1200000,
 	}
-	local showShieldHealthBar, hideShieldHealthBar, shieldedBoss, updateInfoFrame
+	local showShieldHealthBar, hideShieldHealthBar, shieldedBoss
 	local frame = CreateFrame("Frame") -- using a separate frame avoids the overhead of the DBM event handlers which are not meant to be used with frequently occuring events like all damage events...
 	local shieldedMob
 	local absorbRemaining = 0
@@ -190,11 +256,64 @@ do
 	function updateInfoFrame()
 		twipe(lines)
 		twipe(sortedLines)
-		if shieldedBoss then
-			addLine(shieldedBoss, getShieldHP() .. "%")
+		if not mod.vb.usedSpecials then
+			return lines, sortedLines
 		end
+		
+		local raidLine = L.Raid .. (mod.vb.lastRaidColor or L.None)
+		addLine(raidLine, "")
+		
+		local catcherLine = L.Catchers .. (mod.vb.lastCatcherColor or L.None)
+		addLine(catcherLine, "")
+		
+		addLine(" ", "")
+		
+		local function addAbilityLine(displayName, isUsed, isDarkColor, isActiveShield, isShield)
+			local leftText
+			local rightText = ""
+			if isActiveShield and shieldedBoss then
+				local colorHex = isDarkColor and "9932CD" or "FFCC00"
+				local percent = getShieldHP()
+				local percentColor
+				if percent > 70 then
+					percentColor = "00FF00" -- Green
+				elseif percent > 30 then
+					percentColor = "FFFF00" -- Yellow
+				else
+					percentColor = "FF0000" -- Red
+				end
+				leftText = "|cff" .. colorHex .. displayName .. "|r: |cff" .. percentColor .. percent .. "%|r"
+			elseif isUsed then
+				if isShield then
+					leftText = "|cff808080" .. displayName .. ": 0%|r"
+				else
+					leftText = "|cff808080" .. displayName .. "|r"
+				end
+			else
+				local colorHex = isDarkColor and "9932CD" or "FFCC00"
+				leftText = "|cff" .. colorHex .. displayName .. "|r"
+			end
+			addLine(leftText, rightText)
+		end
+		addAbilityLine(L.VortexLight, mod.vb.usedSpecials.vortexLight, false, false, false)
+		addAbilityLine(L.VortexDark, mod.vb.usedSpecials.vortexDark, true, false, false)
+		addAbilityLine(L.PactLight, mod.vb.usedSpecials.pactLight, true, mod.vb.activeSpecial == "pactLight", true)
+		addAbilityLine(L.PactDark, mod.vb.usedSpecials.pactDark, false, mod.vb.activeSpecial == "pactDark", true)
 		return lines, sortedLines
 	end
+
+	--[[
+	function mod:SetTestAbsorb(amount, isPercent)
+		if isPercent then
+			if maxAbsorb == 0 then
+				maxAbsorb = 100000
+			end
+			absorbRemaining = maxAbsorb * (amount / 100)
+		else
+			absorbRemaining = amount
+		end
+	end
+	--]]
 
 	function mod:SPELL_AURA_APPLIED(args)
 		if args:IsPlayer() and args:IsSpellID(65724, 67213, 67214, 67215) then -- Empowered Darkness
@@ -227,11 +346,22 @@ do
 			self:Schedule(0.75, warnDebuff, self)
 		elseif args:IsSpellID(67246, 65879, 65916, 67244) or args:IsSpellID(67245, 67248, 67249, 67250) then -- Power of the Twins
 			self:Schedule(0.1, showPowerWarning, self, args:GetDestCreatureID())
-		elseif args:IsSpellID(65874, 67256, 67257, 67258) or args:IsSpellID(65858, 67259, 67260, 67261) then -- Shield of Darkness/Lights
+		elseif args:IsSpellID(65874, 67256, 67257, 67258) then -- Shield of Darkness
 			shieldedBoss = args.destName
 			showShieldHealthBar(self, args.destGUID, args.spellName, shieldValues[args.spellId] or 0)
-			DBM.InfoFrame:SetHeader(args.spellName)
-			DBM.InfoFrame:Show(2, "function", updateInfoFrame, false, true)
+			if self.vb.activeSpecial ~= "pactDark" then
+				self.vb.activeSpecial = "pactDark"
+				self.vb.usedSpecials.pactDark = true
+				self:CheckAndResetCycle()
+			end
+		elseif args:IsSpellID(65858, 67259, 67260, 67261) then -- Shield of Lights
+			shieldedBoss = args.destName
+			showShieldHealthBar(self, args.destGUID, args.spellName, shieldValues[args.spellId] or 0)
+			if self.vb.activeSpecial ~= "pactLight" then
+				self.vb.activeSpecial = "pactLight"
+				self.vb.usedSpecials.pactLight = true
+				self:CheckAndResetCycle()
+			end
 		end
 	end
 
@@ -240,9 +370,7 @@ do
 			shieldedBoss = nil
 			specWarnKickNow:Show()
 			specWarnKickNow:Play("kickcast")
-			if self.Options.InfoFrame then
-				DBM.InfoFrame:Hide()
-			end
+			self.vb.activeSpecial = nil
 			hideShieldHealthBar()
 		elseif args:IsSpellID(65950, 67296, 67297, 67298) then -- Touch of Light
 			timerLightTouch:Stop(args.destName)

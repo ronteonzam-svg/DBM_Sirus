@@ -123,8 +123,8 @@ L:SetOptionLocalization{
 }
 
 L:SetMiscLocalization{
-	DBM_CURA_YELL_PULL		= "The Menagerie is for guests only.",
-	DBM_CURA_YELL_OOM		= "Your request cannot be processed."
+	DBM_CURA_YELL_OOM		= "Your request cannot be processed"
+	DBM_CURA_YELL_P2		= "Failure to comply will result in offensive action"
 }
 
 
@@ -139,6 +139,7 @@ L:SetWarningLocalization{
 }
 
 L:SetTimerLocalization{
+    KilrekRespawn = "Kil'rek Respawn"
 }
 
 L:SetOptionLocalization{

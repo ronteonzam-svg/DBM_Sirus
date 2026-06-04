@@ -21,10 +21,14 @@ local warningWoeStrike	= mod:NewTargetNoFilterAnnounce(42730, 2, nil, "RemoveCur
 
 local specWarnSpelllock	= mod:NewSpecialWarningCast(42729, "SpellCaster", nil, 2, 1, 2)
 local specWarnSmash		= mod:NewSpecialWarningDodge(42723, "Tank", nil, nil, 1, 2)
+local specWarnShadowAxe		= mod:NewSpecialWarningDodge(42751, nil, nil, nil, 3, 2)
+local specWarnShadowAxeYou	= mod:NewSpecialWarningYou(42751, nil, nil, nil, 3, 2)
+local warnShadowAxeTarget	= mod:NewTargetAnnounce(42751, 3)
 
 local timerSmash		= mod:NewCastTimer(3, 42723)
 local timerSmashCD		= mod:NewCDTimer(13, 42723)
 local timerWoeStrike	= mod:NewTargetTimer(10, 42723, nil, "RemoveCurse", nil, 5, nil, DBM_COMMON_L.CURSE_ICON)
+local timerShadowAxe	= mod:NewBuffActiveTimer(10, 42751, nil, nil, nil, 3)
 
 mod:AddSetIconOption("WoeStrikeIcon", 42730, true, false, {8})
 
@@ -34,7 +38,7 @@ function mod:OnCombatStart()
 end
 
 function mod:SPELL_CAST_START(args)
-	if args:IsSpellID(42723, 42669, 59706) then
+	if args:IsSpellID(42723, 42669, 59706, 59709) then
 		specWarnSmash:Show()
 		specWarnSmash:Play("shockwave")
 		timerSmash:Start()
@@ -82,5 +86,27 @@ end
 function mod:UNIT_SPELLCAST_SUCCEEDED(_, spellName)
 	if spellName == GetSpellInfo(42863) then -- Scourge Resurrection
 		self:SetStage(2)
+	elseif spellName == GetSpellInfo(42751) then -- Shadow Axe
+		self:BossTargetScanner(UnitGUID("boss1"), "AxeTarget", 0.05, 10)
+		self:ScheduleMethod(0.55, "AxeTargetFallback")
+		timerShadowAxe:Start()
 	end
+end
+
+function mod:AxeTarget(targetname)
+	self:UnscheduleMethod("AxeTargetFallback")
+	if not targetname then return end
+	warnShadowAxeTarget:Show(targetname)
+	if targetname == UnitName("player") then
+		specWarnShadowAxeYou:Show()
+		specWarnShadowAxeYou:Play("runaway")
+	else
+		specWarnShadowAxe:Show()
+		specWarnShadowAxe:Play("watchstep")
+	end
+end
+
+function mod:AxeTargetFallback()
+	specWarnShadowAxe:Show()
+	specWarnShadowAxe:Play("watchstep")
 end

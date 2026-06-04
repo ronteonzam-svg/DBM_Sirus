@@ -1,7 +1,7 @@
 ﻿local mod = DBM:NewMod("RomuloAndJulianne", "DBM-Karazhan")
 local L   = mod:GetLocalizedStrings()
 
-mod:SetRevision("20210502220000") -- fxpw check 202206151120000
+mod:SetRevision("20260411000000")
 mod:SetCreatureID(17534, 17533)
 
 mod:RegisterCombat("combat", 17534, 17533)
@@ -57,14 +57,14 @@ local function updateHealthFrame(phase) --WIP
 end
 
 function mod:OnCombatStart()
-	DBM:FireCustomEvent("DBM_EncounterStart", 17534, "RomuloAndJulianne")
+	DBM:FireCustomEvent("DBM_EncounterStart", 17534, "Romulo & Julianne")
 	updateHealthFrame(1)
 	self.vb.JulianneDied = 0
 	self.vb.RomuloDied = 0
 end
 
 function mod:OnCombatEnd(wipe)
-	DBM:FireCustomEvent("DBM_EncounterEnd", 17534, "RomuloAndJulianne", wipe)
+	DBM:FireCustomEvent("DBM_EncounterEnd", 17534, "Romulo & Julianne", wipe)
 end
 
 function mod:SPELL_CAST_START(args)

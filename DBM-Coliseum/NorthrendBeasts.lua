@@ -116,8 +116,8 @@ function mod:OnCombatStart(delay)
 	specWarnSilence:Schedule(14-delay)
 	specWarnSilence:ScheduleVoice(14-delay, "silencesoon")
 	if self:IsHeroic() then
-		timerNextBoss:Start(152-delay)
-		timerNextBoss:Schedule(147)
+		timerNextBoss:Start(185-delay)
+		timerNextBoss:Schedule(180)
 		timerRisingAnger:Start(18-delay)
 	else
 		timerRisingAnger:Start(27-delay)
