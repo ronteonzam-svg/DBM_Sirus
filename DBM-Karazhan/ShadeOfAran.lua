@@ -7,7 +7,7 @@ mod:RegisterCombat("combat")
 mod:SetUsedIcons(1, 2, 3, 4, 5, 6, 7, 8)
 
 mod:RegisterEvents(
-	"SPELL_CAST_START 30004 29973 305338 305329 305326 305331",
+	"SPELL_CAST_START 30004 29973 29969 305338 305329 305326 305331",
 	"SPELL_AURA_APPLIED 29991 29946 305328",
 	"SPELL_AURA_REMOVED 29991 305328",
 	"SPELL_SUMMON 29962 37051 37052 37053",
@@ -59,6 +59,7 @@ function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 16524, "Shade of Aran")
 	if self:IsDifficulty("normal10") then
 		berserkTimer:Start(-delay)
+		timerSpecial:Start(35 - delay)
 	elseif self:IsDifficulty("heroic10") then
 		timerSpecialHeroic:Start()
 		self.vb.famCounter = 1
@@ -73,7 +74,7 @@ function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(30004) then
 		warningFlameCast:Show()
 		timerFlameCast:Start()
-		timerSpecial:Start()
+		timerSpecial:Start(40)
 	elseif args:IsSpellID(29973) then
 		warningArcaneCast:Show()
 		timerArcaneExplosion:Start()

@@ -123,7 +123,7 @@ L:SetOptionLocalization{
 }
 
 L:SetMiscLocalization{
-	DBM_CURA_YELL_OOM		= "Your request cannot be processed"
+	DBM_CURA_YELL_OOM		= "Your request cannot be processed",
 	DBM_CURA_YELL_P2		= "Failure to comply will result in offensive action"
 }
 
