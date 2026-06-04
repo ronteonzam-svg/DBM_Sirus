@@ -129,6 +129,7 @@ L:SetTimerLocalization({
 L:SetWarningLocalization({
 	WarnSpecialSpellSoon		= "Special ability soon",
 	SpecWarnSpecial				= "Change color",
+	SpecWarnSpecialInstruction	= "%s",
 	SpecWarnSwitchTarget		= "Switch target",
 	SpecWarnKickNow				= "Interrupt now",
 	WarningTouchDebuff			= "Debuff on >%s<",
@@ -140,7 +141,17 @@ L:SetMiscLocalization({
 --	CombatStart	= "Only by working together will you overcome the final challenge. From the depths of Icecrown come two of the Scourge's most powerful lieutenants: fearsome val'kyr, winged harbingers of the Lich King!",
 	Fjola		= "Fjola Lightbane",
 	Eydis		= "Eydis Darkbane",
-	AnubRP		= "A mighty blow has been dealt to the Lich King! You have proven yourselves as able bodied champions of the Argent Crusade. Together we will strike against Icecrown Citadel and destroy what remains of the Scourge! There is no challenge that we cannot face united!"
+	AnubRP		= "A mighty blow has been dealt to the Lich King! You have proven yourselves as able bodied champions of the Argent Crusade. Together we will strike against Icecrown Citadel and destroy what remains of the Scourge! There is no challenge that we cannot face united!",
+	Raid = "|cffffffffRaid:|r ",
+	Catchers = "|cffffffffCatchers:|r ",
+	Light = "|cffFFCC00Light|r",
+	Dark = "|cff9932CDDark|r",
+	None = "|cff808080-|r",
+	VortexLight = "Light Vortex",
+	VortexDark = "Dark Vortex",
+	PactLight = "Shield of Lights",
+	PactDark = "Shield of Darkness",
+	InfoFrameOption = "Show info frame (vortexes, shields, colors)",
 })
 
 L:SetOptionLocalization({
@@ -148,12 +159,14 @@ L:SetOptionLocalization({
 	TimerAnubRoleplay			= "Show roleplay timer for Lich King breaking the floor",
 	WarnSpecialSpellSoon		= "Show pre-warning for next special ability",
 	SpecWarnSpecial				= "Show special warning when you have to change color",
+	SpecWarnSpecialInstruction	= "Show special warning with instructions for raid/catchers",
 	SpecWarnSwitchTarget		= "Show special warning when the other Twin is casting",
 	SpecWarnKickNow				= "Show special warning when you have to interrupt",
 	SpecialWarnOnDebuff			= "Show change color special warning when touch debuffed (to switch debuff)",
 	SetIconOnDebuffTarget		= "Set icons on Touch of Light/Darkness debuff targets (heroic)",
 	WarningTouchDebuff			= "Announce Touch of Light/Darkness debuff targets",
-	WarningPoweroftheTwins2		= "Announce Power of the Twins targets"
+	WarningPoweroftheTwins2		= "Announce Power of the Twins targets",
+	InfoFrameSetPoint			= "Align info frame to default position (center-left, slightly down)"
 })
 
 -----------------

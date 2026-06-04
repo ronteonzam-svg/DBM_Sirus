@@ -136,7 +136,7 @@ L:SetOptionLocalization{
 }
 
 L:SetMiscLocalization{
-	DBM_CURA_YELL_OOM		= "Ваш запрос не может быть обработан"
+	DBM_CURA_YELL_OOM		= "Ваш запрос не может быть обработан",
 	DBM_CURA_YELL_P2		= "В случае неподчинения будут приняты меры"
 }
 

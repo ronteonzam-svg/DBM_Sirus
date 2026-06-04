@@ -49,7 +49,9 @@ local timerAnubRoleplay = mod:NewTimer(47.5, "TimerAnubRoleplay", 43827, nil, ni
 
 mod:AddBoolOption("SpecialWarnOnDebuff", false, "announce")
 mod:AddBoolOption("SetIconOnDebuffTarget", false)
-mod:AddInfoFrameOption(67258, true)
+mod:AddInfoFrameOption(nil, true)
+mod.localization.options.InfoFrame = L.InfoFrameOption or mod.localization.options.InfoFrame
+mod:AddBoolOption("InfoFrameSetPoint", false, "misc")
 mod:AddBoolOption("HealthFrame", false)
 
 local lightEssence, darkEssence = DBM:GetSpellInfo(65686), DBM:GetSpellInfo(65684)
@@ -72,6 +74,13 @@ function mod:OnCombatStart(delay)
 	if self.Options.InfoFrame then
 		DBM.InfoFrame:SetHeader(L.name or "Валь'киры-близнецы")
 		DBM.InfoFrame:Show(7, "function", updateInfoFrame, false, false)
+		if self.Options.InfoFrameSetPoint then
+			local frame = _G["DBMInfoFrame"]
+			if frame then
+				frame:ClearAllPoints()
+				frame:SetPoint("CENTER", UIParent, "CENTER", -250, -100)
+			end
+		end
 	end
 	timerSpecial:Start(-delay)
 	warnSpecial:Schedule(40 - delay)
@@ -88,6 +97,11 @@ function mod:OnCombatEnd()
 	DBM:FireCustomEvent("DBM_EncounterStart", 34497, "The Twin Val'kyr")
 	if self.Options.InfoFrame then
 		DBM.InfoFrame:Hide()
+	end
+	local frame = _G["DBMInfoFrame"]
+	if frame then
+		frame:ClearAllPoints()
+		frame:SetPoint(DBM.Options.InfoFramePoint, UIParent, DBM.Options.InfoFramePoint, DBM.Options.InfoFrameX, DBM.Options.InfoFrameY)
 	end
 end
 
@@ -118,8 +132,8 @@ do
 			self.vb.lastCatcherColor = L.Dark
 			self:CheckAndResetCycle()
 			specWarnSpecialInstruction:Show(L.Raid .. L.Light .. " |cffffffff/|r " .. L.Catchers .. L.Dark)
-			self:Unschedule("ClearActiveSpecial")
-			self:Schedule(5, "ClearActiveSpecial")
+			self:UnscheduleMethod("ClearActiveSpecial")
+			self:ScheduleMethod(5, "ClearActiveSpecial")
 			SpecialAbility()
 		elseif args:IsSpellID(66058, 67182, 67183, 67184) then -- Dark Vortex
 			self.vb.usedSpecials.vortexDark = true
@@ -128,8 +142,8 @@ do
 			self.vb.lastCatcherColor = L.Light
 			self:CheckAndResetCycle()
 			specWarnSpecialInstruction:Show(L.Raid .. L.Dark .. " |cffffffff/|r " .. L.Catchers .. L.Light)
-			self:Unschedule("ClearActiveSpecial")
-			self:Schedule(5, "ClearActiveSpecial")
+			self:UnscheduleMethod("ClearActiveSpecial")
+			self:ScheduleMethod(5, "ClearActiveSpecial")
 			SpecialAbility()
 		elseif args:IsSpellID(65875, 67303, 67304, 67305) then -- Twin's Pact
 			self.vb.usedSpecials.pactDark = true
@@ -335,15 +349,19 @@ do
 		elseif args:IsSpellID(65874, 67256, 67257, 67258) then -- Shield of Darkness
 			shieldedBoss = args.destName
 			showShieldHealthBar(self, args.destGUID, args.spellName, shieldValues[args.spellId] or 0)
-			self.vb.activeSpecial = "pactDark"
-			self.vb.usedSpecials.pactDark = true
-			self:CheckAndResetCycle()
+			if self.vb.activeSpecial ~= "pactDark" then
+				self.vb.activeSpecial = "pactDark"
+				self.vb.usedSpecials.pactDark = true
+				self:CheckAndResetCycle()
+			end
 		elseif args:IsSpellID(65858, 67259, 67260, 67261) then -- Shield of Lights
 			shieldedBoss = args.destName
 			showShieldHealthBar(self, args.destGUID, args.spellName, shieldValues[args.spellId] or 0)
-			self.vb.activeSpecial = "pactLight"
-			self.vb.usedSpecials.pactLight = true
-			self:CheckAndResetCycle()
+			if self.vb.activeSpecial ~= "pactLight" then
+				self.vb.activeSpecial = "pactLight"
+				self.vb.usedSpecials.pactLight = true
+				self:CheckAndResetCycle()
+			end
 		end
 	end
 

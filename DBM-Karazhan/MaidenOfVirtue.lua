@@ -17,7 +17,7 @@ local warningRepentance		= mod:NewSpellAnnounce(29511, nil, nil, nil, 3)	-- По
 local warningHolyFire		= mod:NewTargetAnnounce(29522, nil, nil, nil, 3)	--Священный огонь
 
 local timerRepentance		= mod:NewBuffActiveTimer(12.6, 29511)
-local timerRepentanceCDob		= mod:NewCDTimer(33, 29511)
+local timerRepentanceCDob		= mod:NewCDTimer(30, 29511)
 local timerHolyFire			= mod:NewTargetTimer(12, 29522)
 
 mod:AddBoolOption("RangeFrame", true)
@@ -76,8 +76,8 @@ mod:AddBoolOption("HealthFrame", true)
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 16457, "Maiden of Virtue")
 	if self:IsDifficulty("normal10") then
-		timerRepentanceCDob:Start(45-delay)
-		warningRepentanceSoon:Schedule(40-delay)
+		timerRepentanceCDob:Start(28-delay)
+		warningRepentanceSoon:Schedule(23-delay)
 		if self.Options.RangeFrame then
 			DBM.RangeCheck:Show(12)
 		end
@@ -113,8 +113,8 @@ function mod:SPELL_CAST_START(args)
 		warningRepentanceSoon:Cancel()
 		warningRepentance:Show()
 		timerRepentance:Start()
-		timerRepentanceCD:Start()
-		warningRepentanceSoon:Schedule(28)
+		timerRepentanceCDob:Start()
+		warningRepentanceSoon:Schedule(25)
 	end
 end
 
