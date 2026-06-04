@@ -6,11 +6,10 @@ mod:SetCreatureID(99973, 99972, 99974, 15691)
 mod:RegisterCombat("combat", 99974, 15691)
 
 mod:RegisterEvents(
-	"SPELL_AURA_APPLIED 305309 305305",
+	"SPELL_AURA_APPLIED 305309 305305 30254 30403",
 	"SPELL_AURA_REMOVED 305313 305309 305305",
 	"SPELL_CAST_START 305296 305312",
-	"SPELL_CAST_SUCCESS 305298 30254",
-	"CHAT_MSG_MONSTER_YELL"
+	"SPELL_CAST_SUCCESS 305298"
 )
 
 --обычка--
@@ -116,6 +115,10 @@ function mod:SPELL_AURA_APPLIED(args)
 		end
 		warnUnstableTar:Show(table.concat(unstableTargets, "<, >"))
 		table.wipe(unstableTargets)
+	elseif args:IsSpellID(30254) then
+		timerEvo:Start()
+	elseif args:IsSpellID(30403) then
+		timerEvo:Stop()
 	end
 end
 
@@ -135,15 +138,5 @@ function mod:SPELL_CAST_SUCCESS(args)
 		if self.vb.ter then
 			self.vb.ter = false
 		end
-	elseif args:IsSpellID(30254) then
-		timerEvo:Start()
-	end
-end
-
-function mod:CHAT_MSG_MONSTER_YELL(msg)
-	if L.DBM_CURA_YELL_OOM and (msg == L.DBM_CURA_YELL_OOM or msg:find(L.DBM_CURA_YELL_OOM, 1, true)) then
-		timerEvo:Start()
-	elseif L.DBM_CURA_YELL_P2 and (msg == L.DBM_CURA_YELL_P2 or msg:find(L.DBM_CURA_YELL_P2, 1, true)) then
-		timerEvo:Stop()
 	end
 end

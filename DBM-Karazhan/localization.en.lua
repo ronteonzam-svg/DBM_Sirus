@@ -1,4 +1,4 @@
-﻿local L
+local L
 local LDB = DBM_CORE_L
 --Attumen
 L = DBM:GetModLocalization("Attumen")
