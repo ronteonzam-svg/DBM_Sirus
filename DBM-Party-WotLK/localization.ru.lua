@@ -560,6 +560,19 @@ L:SetGeneralLocalization({
 	name = "Ингвар Расхититель"
 })
 
+L:SetTimerLocalization({
+	TimerAxeReturn		= "Возврат топора"
+})
+
+L:SetWarningLocalization({
+	SpecWarnAxeReturn	= "Теневой топор возвращается!"
+})
+
+L:SetOptionLocalization({
+	SpecWarnAxeReturn	= "Спецпредупреждение для возвращения топора",
+	TimerAxeReturn		= "Отсчет времени возвращения топора"
+})
+
 L:SetMiscLocalization({
 	YellIngvarPhase2	= "Я вернулся! Еще один шанс раскроить вам головы!",
 	YellCombatEnd		= "Нет! Я смогу это сделать… я смогу…"
