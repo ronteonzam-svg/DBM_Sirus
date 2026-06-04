@@ -14,6 +14,7 @@ mod:RegisterEventsInCombat(
 	"SPELL_AURA_REMOVED 42730 59735",
 	"CHAT_MSG_MONSTER_YELL",
 	"UNIT_DIED",
+	"UNIT_TARGET target focus",
 	"UNIT_SPELLCAST_SUCCEEDED boss1 target focus"
 )
 
@@ -23,6 +24,9 @@ local specWarnStaggeringRoar	= mod:NewSpecialWarningCast(42708, nil, nil, nil, 1
 local specWarnDreadfulRoar		= mod:NewSpecialWarningCast(42729, nil, nil, nil, 1, 2)
 local specWarnSmash		= mod:NewSpecialWarningDodge(42723, "Tank", nil, nil, 1, 2)
 local specWarnAxe		= mod:NewSpecialWarningDodge(42748, nil, nil, nil, 2, 2)
+local specWarnAxeOnYou	= mod:NewSpecialWarningYou(42748, nil, nil, nil, 3, 2)
+local warnAxeTarget		= mod:NewTargetNoFilterAnnounce(42748, 3)
+local yellAxe			= mod:NewYell(42748)
 local specWarnAxeReturn	= mod:NewSpecialWarning("SpecWarnAxeReturn", "Melee", nil, nil, 1, nil, nil, 42748, 42748)
 specWarnAxeReturn.icon	= select(3, GetSpellInfo(42748))
 
@@ -36,6 +40,8 @@ mod:AddSetIconOption("WoeStrikeIcon", 42730, true, false, {8})
 function mod:OnCombatStart()
 	self:SetStage(1)
 	timerSmashCD:Start(15)
+	self.vb.axeTargetWarned = false
+	self.vb.lastAxeTime = 0
 end
 
 function mod:SPELL_CAST_START(args)
@@ -87,17 +93,59 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 	end
 end
 
+function mod:ResetAxeTarget()
+	self.vb.axeTargetWarned = false
+end
+
+function mod:UNIT_TARGET(uId)
+	if uId == "target" or uId == "focus" then
+		if self.vb.phase == 2 then
+			local targetName = UnitName(uId .. "target")
+			if targetName and not self:IsTanking(uId .. "target", uId) then
+				if GetTime() - (self.vb.lastAxeTime or 0) > 10 then
+					if not self.vb.axeTargetWarned then
+						self.vb.axeTargetWarned = true
+						self.vb.lastAxeTime = GetTime()
+						if targetName == UnitName("player") then
+							specWarnAxeOnYou:Show()
+							specWarnAxeOnYou:Play("runaway")
+							yellAxe:Yell()
+						else
+							warnAxeTarget:Show(targetName)
+						end
+						self:ScheduleMethod(2, "ResetAxeTarget")
+					end
+				end
+			end
+		end
+	end
+end
+
 function mod:UNIT_SPELLCAST_SUCCEEDED(uId, spellName, _, _, spellId)
 	if spellName == GetSpellInfo(42863) or spellId == 42863 then -- Scourge Resurrection
 		if self:AntiSpam(3, "Resurrection") then
 			self:SetStage(2)
 		end
 	elseif spellName == GetSpellInfo(42748) or spellId == 42748 or spellName == "Теневой топор" then
-		if self:AntiSpam(2, "ShadowAxe") then
-			timerAxeReturn:Start()
-			specWarnAxe:Show()
-			DBM:PlaySoundFile("Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg")
-			specWarnAxeReturn:Schedule(8)
+		self.vb.lastAxeTime = GetTime()
+		if not self.vb.axeTargetWarned then
+			local targetName = uId and UnitName(uId .. "target")
+			if targetName then
+				if targetName == UnitName("player") then
+					specWarnAxeOnYou:Show()
+					specWarnAxeOnYou:Play("runaway")
+					yellAxe:Yell()
+				else
+					warnAxeTarget:Show(targetName)
+				end
+			else
+				specWarnAxe:Show()
+				DBM:PlaySoundFile("Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg")
+			end
 		end
+		self:UnscheduleMethod("ResetAxeTarget")
+		self.vb.axeTargetWarned = false
+		timerAxeReturn:Start()
+		specWarnAxeReturn:Schedule(8)
 	end
 end
