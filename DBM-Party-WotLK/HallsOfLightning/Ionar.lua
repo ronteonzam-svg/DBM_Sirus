@@ -10,7 +10,7 @@ mod:RegisterCombat("combat")
 mod:RegisterEventsInCombat(
 	"SPELL_AURA_APPLIED 52658 59795",
 	"SPELL_AURA_REMOVED 52658 59795",
-	"SPELL_CAST_START 52770",
+	"SPELL_CAST_START 52770 59800",
 	"UNIT_HEALTH boss1"
 )
 
@@ -21,14 +21,16 @@ local warningOverload		= mod:NewTargetAnnounce(52658, 2)
 local specWarnOverload		= mod:NewSpecialWarningMoveAway(52658, nil, nil, nil, 1, 2)
 
 local timerOverload			= mod:NewTargetTimer(10, 52658, nil, nil, nil, 3)
+local timerBallLightningCD	= mod:NewCDTimer(10, 59800, nil, nil, nil, 2)
 
 mod:AddRangeFrameOption(10, 52658)
 mod:AddSetIconOption("SetIconOnOverloadTarget", 59795, true, false, {8})
 
 local warnedDisperse = false
 
-function mod:OnCombatStart()
+function mod:OnCombatStart(delay)
 	warnedDisperse = false
+	timerBallLightningCD:Start(10 - delay)
 end
 
 function mod:OnCombatEnd()
@@ -69,6 +71,10 @@ end
 function mod:SPELL_CAST_START(args)
 	if args.spellId == 52770 then
 		warningDisperse:Show()
+		timerBallLightningCD:Cancel()
+		timerBallLightningCD:Start(40)
+	elseif args.spellId == 59800 then
+		timerBallLightningCD:Start()
 	end
 end
 
