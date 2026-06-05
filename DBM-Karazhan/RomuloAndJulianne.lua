@@ -1,4 +1,4 @@
-﻿local mod = DBM:NewMod("RomuloAndJulianne", "DBM-Karazhan")
+local mod = DBM:NewMod("RomuloAndJulianne", "DBM-Karazhan")
 local L   = mod:GetLocalizedStrings()
 
 mod:SetRevision("20260411000000")
@@ -97,10 +97,10 @@ function mod:SPELL_AURA_REMOVED(args)
 end
 
 function mod:CHAT_MSG_MONSTER_YELL(msg)
-	if msg == L.DBM_RJ_PHASE2_YELL or msg:find(L.DBM_RJ_PHASE2_YELL) then
+	if L.DBM_RJ_PHASE2_YELL and (msg == L.DBM_RJ_PHASE2_YELL or msg:find(L.DBM_RJ_PHASE2_YELL)) then
 		warnPhase3:Show()
 		updateHealthFrame(3)
-	elseif msg == L.Event or msg:find(L.Event) then
+	elseif L.Event and (msg == L.Event or msg:find(L.Event)) then
 		timerCombatStart:Start()
 	end
 end

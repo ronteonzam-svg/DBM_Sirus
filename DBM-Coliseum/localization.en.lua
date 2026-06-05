@@ -51,7 +51,9 @@ L:SetGeneralLocalization({
 })
 
 L:SetOptionLocalization({
-	IncinerateShieldFrame	= "Show boss health with a health bar for Incinerate Flesh"
+	IncinerateShieldFrame	= "Show boss health with a health bar for Incinerate Flesh",
+	SpecWarn67009spell		= "Show special warning (with sound) when Nether Power is applied",
+	ShowNetherPowerDec		= "Show remaining Nether Power stacks (counter without sound) as they are dispelled"
 })
 
 L:SetMiscLocalization({

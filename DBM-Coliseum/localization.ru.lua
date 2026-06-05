@@ -54,7 +54,9 @@ L:SetGeneralLocalization({
 })
 
 L:SetOptionLocalization({
-	IncinerateShieldFrame = "Показать здоровье босса с индикатором здоровья для Испепеления плоти"
+	IncinerateShieldFrame = "Показать здоровье босса с индикатором здоровья для Испепеления плоти",
+	SpecWarn67009spell    = "Показывать спец-предупреждение (со звуком) при наложении Власти Пустоты",
+	ShowNetherPowerDec    = "Показывать счетчик оставшихся стаков Власти Пустоты (без звука) при рассеивании"
 })
 
 L:SetMiscLocalization({

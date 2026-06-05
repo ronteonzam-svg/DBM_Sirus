@@ -1,4 +1,4 @@
-﻿if GetLocale() ~= "ruRU" then return end
+if GetLocale() ~= "ruRU" then return end
 
 local L
 local LDB = DBM_CORE_L
@@ -89,6 +89,7 @@ L:SetOptionLocalization{
 }
 
 L:SetMiscLocalization{
+	Event					= "Этим вечером мы обратимся к истории запретной любви!",
 	DBM_RJ_PHASE2_YELL		= "Ночь, добрая и строгая, приди! Верни мне моего Ромуло!",
 	Romulo					= "Ромуло",
 	Julianne				= "Джулианна"

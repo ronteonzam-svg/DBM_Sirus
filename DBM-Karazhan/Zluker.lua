@@ -15,7 +15,7 @@ local timerCombatStart = mod:NewCombatTimer(42)
 -- local warnSound						= mod:NewSoundAnnounce()
 
 function mod:CHAT_MSG_MONSTER_YELL(msg)
-	if msg == L.YellPull or msg:find(L.YellPull) then
+	if L.YellPull and (msg == L.YellPull or msg:find(L.YellPull)) then
 		timerCombatStart:Start()
 	end
 end
