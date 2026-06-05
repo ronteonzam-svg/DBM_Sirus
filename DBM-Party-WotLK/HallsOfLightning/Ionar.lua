@@ -72,7 +72,7 @@ function mod:SPELL_CAST_START(args)
 	if args.spellId == 52770 then
 		warningDisperse:Show()
 		timerBallLightningCD:Cancel()
-		timerBallLightningCD:Start(40)
+		timerBallLightningCD:Start(50)
 	elseif args.spellId == 59800 then
 		timerBallLightningCD:Start()
 	end

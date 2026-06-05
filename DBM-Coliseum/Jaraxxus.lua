@@ -42,7 +42,8 @@ local specWarnFelInferno        = mod:NewSpecialWarningMove(66496, nil, nil, nil
 local SpecWarnFelFireball       = mod:NewSpecialWarningInterrupt(66532, "HasInterrupt", nil, 2, 1, 2)
 local SpecWarnFelFireballDispel = mod:NewSpecialWarningDispel(66532, "RemoveMagic", nil, 2, 1, 2)
 
-local specWarnNetherPower       = mod:NewSpecialWarningCount(67009, nil, nil, nil, 1, 2)
+local specWarnNetherPower       = mod:NewSpecialWarningSpell(67009, nil, nil, nil, 1, 2)
+local warnNetherPowerRemovedAnnounce = mod:NewCountAnnounce(67009, 1, nil, nil, false, nil, nil, true)
 
 local timerCombatStart          = mod:NewCombatTimer(20)                         --roleplay for first pull 34
 local timerFlame                = mod:NewTargetTimer(8, 66197, nil, nil, nil, 3)
@@ -60,6 +61,7 @@ mod:AddSetIconOption("IncinerateFleshIcon", 66237, true, 0, { 8 })
 mod:AddInfoFrameOption(66237, true)
 mod:RemoveOption("HealthFrame")
 mod:AddBoolOption("IncinerateShieldFrame", false, "misc")
+mod:AddBoolOption("ShowNetherPowerDec", true, "announce", nil, nil, nil, 67009)
 
 mod.vb.fleshCount = 0
 mod.vb.netherPowerStacks = 0
@@ -154,11 +156,37 @@ do
 end
 
 local function warnNetherPower(self)
-	specWarnNetherPower:Show(self.vb.netherPowerStacks)
-	if self.vb.netherPowerPlayVoice and self.vb.netherPowerStacks > 0 then
-		specWarnNetherPower:Play("dispelboss")
+	if self.Options.SpecWarn67009spell then
+		specWarnNetherPower:Show()
+		if self.vb.netherPowerPlayVoice and self.vb.netherPowerStacks > 0 then
+			specWarnNetherPower:Play("dispelboss")
+		end
+	elseif self.Options.ShowNetherPowerDec then
+		warnNetherPowerRemovedAnnounce:Show(self.vb.netherPowerStacks)
 	end
 	self.vb.netherPowerPlayVoice = false
+end
+
+local function warnNetherPowerRemoved(self)
+	if self.Options.ShowNetherPowerDec then
+		local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
+		local found = false
+		for i = 1, 3 do
+			local f = _G["DBMWarning" .. i]
+			if f and f:IsShown() then
+				local text = f:GetText()
+				if text and text:find(spellName, 1, true) then
+					local newText = text:gsub("%(%d+%)", "(" .. self.vb.netherPowerStacks .. ")")
+					f:SetText(newText)
+					found = true
+					break
+				end
+			end
+		end
+		if not found then
+			warnNetherPowerRemovedAnnounce:Show(self.vb.netherPowerStacks)
+		end
+	end
 end
 
 function mod:SPELL_CAST_START(args)
@@ -244,8 +272,8 @@ function mod:SPELL_AURA_REMOVED_DOSE(args)
 		local amount = args.amount or 0
 		if not self.vb.netherPowerStacks or amount < self.vb.netherPowerStacks then
 			self.vb.netherPowerStacks = amount
-			self:Unschedule(warnNetherPower)
-			self:Schedule(0.15, warnNetherPower, self)
+			self:Unschedule(warnNetherPowerRemoved)
+			self:Schedule(0.15, warnNetherPowerRemoved, self)
 		end
 	end
 end
@@ -263,8 +291,8 @@ function mod:SPELL_AURA_REMOVED(args)
 		clearIncinerateTarget(self, args.destName)
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
 		self.vb.netherPowerStacks = 0
-		self:Unschedule(warnNetherPower)
-		self:Schedule(0.15, warnNetherPower, self)
+		self:Unschedule(warnNetherPowerRemoved)
+		self:Schedule(0.15, warnNetherPowerRemoved, self)
 	end
 end
 
