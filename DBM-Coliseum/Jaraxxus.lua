@@ -17,11 +17,12 @@ mod:RegisterEvents(
 
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 66532 66963 66964 66965",
-	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66269 67898 67899 67900 66263 66264 67103 67104 67105 68404 68405 68406 66197 68123 68124 68125",
+	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66197 68123 68124 68125",
+	"SPELL_SUMMON 66269 67898 67899 67900",
 	"SPELL_AURA_APPLIED 67051 67050 67049 66237 66197 68123 68124 68125 66334 67905 67906 67907 66532 66963 66964 66965 66228 67106 67107 67108",
 	"SPELL_AURA_APPLIED_DOSE 66228 67106 67107 67108",
 	"SPELL_AURA_REMOVED_DOSE 66228 67106 67107 67108",
-	"SPELL_AURA_REMOVED 67051 67050 67049 66237",
+	"SPELL_AURA_REMOVED 67051 67050 67049 66237 66228 67106 67107 67108",
 	"SPELL_DAMAGE 66877 67070 67071 67072 66496 68716 68717 68718",
 	"SPELL_MISSED 66877 67070 67071 67072 66496 68716 68717 68718",
 	"SPELL_HEAL",
@@ -67,6 +68,7 @@ mod.vb.fleshCount = 0
 mod.vb.netherPowerStacks = 0
 local incinerateFleshTargetName
 
+--[[
 local function PortalLoop(self)
 	if self:IsInCombat() then
 		timerPortalCD:Start(120)
@@ -74,6 +76,7 @@ local function PortalLoop(self)
 		self:Schedule(120, PortalLoop, self)
 	end
 end
+--]]
 
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 34780, "Lord Jaraxxus")
@@ -86,7 +89,7 @@ function mod:OnCombatStart(delay)
 	self.vb.netherPowerPlayVoice = false
 	timerPortalCD:Start(20 - delay)
 	warnPortalSoon:Schedule(15 - delay)
-	self:Schedule(20 - delay, PortalLoop, self)
+	--self:Schedule(20 - delay, PortalLoop, self)
 	timerVolcanoCD:Start(82 - delay)
 	warnVolcanoSoon:Schedule(77 - delay)
 	timerNetherPowerCD:Start(15 - delay)
@@ -101,7 +104,7 @@ function mod:OnCombatEnd(wipe)
 		DBM.InfoFrame:Hide()
 	end
 	DBM.BossHealth:Clear()
-	self:Unschedule(PortalLoop)
+	--self:Unschedule(PortalLoop)
 end
 
 local setIncinerateTarget, clearIncinerateTarget, updateInfoFrame
@@ -196,16 +199,19 @@ function mod:SPELL_CAST_START(args)
 	end
 end
 
+function mod:SPELL_SUMMON(args)
+	if args:IsSpellID(66269, 67898, 67899, 67900) then -- Nether Portal
+		timerPortalCD:Start()
+		warnPortalSoon:Schedule(115)
+	end
+end
+
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(66228, 67106, 67107, 67108) then -- Nether Power
 		timerNetherPowerCD:Start()
 	elseif args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
 		timerVolcanoCD:Start()
 		warnVolcanoSoon:Schedule(110)
-	--elseif args:IsSpellID(66263, 66264, 66269, 67103, 67104, 67105, 67898, 67899, 67900, 68404, 68405, 68406) then -- Nether Portal
-	--	timerPortalCD:Start()
-	--	warnPortalSoon:Schedule(110)
-	--	print("|cff00ff00[DBM Debug]|r Врата пустоты сработали! ID заклинания: " .. tostring(args.spellId))
 	elseif args:IsSpellID(66197, 68123, 68124, 68125) then -- Legion Flame
 		warnFlame:Show(args.destName)
 	end
@@ -248,7 +254,7 @@ function mod:SPELL_AURA_APPLIED(args)
 	elseif args:IsSpellID(66532, 66963, 66964, 66965) then -- Fel Fireball (announce if tank gets debuff for dispel)
 		SpecWarnFelFireballDispel:Show(args.destName)
 		SpecWarnFelFireballDispel:Play("helpdispel")
-	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
+	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
 		local diff = DBM:GetCurrentInstanceDifficulty()
 		local stacks = (diff == "heroic25" or diff == "normal25") and 10 or 5
 		self.vb.netherPowerStacks = args.amount or stacks
@@ -259,7 +265,7 @@ function mod:SPELL_AURA_APPLIED(args)
 end
 
 function mod:SPELL_AURA_APPLIED_DOSE(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) then
+	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
 		self.vb.netherPowerStacks = args.amount or 1
 		self.vb.netherPowerPlayVoice = true
 		self:Unschedule(warnNetherPower)
@@ -268,7 +274,7 @@ function mod:SPELL_AURA_APPLIED_DOSE(args)
 end
 
 function mod:SPELL_AURA_REMOVED_DOSE(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) then
+	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
 		local amount = args.amount or 0
 		if not self.vb.netherPowerStacks or amount < self.vb.netherPowerStacks then
 			self.vb.netherPowerStacks = amount
@@ -289,7 +295,7 @@ function mod:SPELL_AURA_REMOVED(args)
 			self:RemoveIcon(args.destName)
 		end
 		clearIncinerateTarget(self, args.destName)
-	elseif args:IsSpellID(66228, 67106, 67107, 67108) then
+	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
 		self.vb.netherPowerStacks = 0
 		self:Unschedule(warnNetherPowerRemoved)
 		self:Schedule(0.15, warnNetherPowerRemoved, self)

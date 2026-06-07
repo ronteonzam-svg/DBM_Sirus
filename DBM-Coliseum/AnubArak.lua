@@ -45,7 +45,7 @@ local specWarnPCold        = mod:NewSpecialWarningYou(66013, false, nil, nil, 1,
 local timerAdds            = mod:NewTimer(45, "timerAdds", 45419, nil, nil, 1, CL.TANK_ICON)
 local timerSubmerge        = mod:NewTimer(80, "TimerSubmerge",
 	"Interface\\AddOns\\DBM-Core\\textures\\CryptFiendBurrow.blp", nil, nil, 6, DBM_COMMON_L.IMPORTANT_ICON, nil, 1)
-local timerEmerge          = mod:NewTimer(65, "TimerEmerge",
+local timerEmerge          = mod:NewTimer(60, "TimerEmerge",
 	"Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp", nil, nil, 6, DBM_COMMON_L.IMPORTANT_ICON, nil, 1)
 local timerFreezingSlash   = mod:NewCDTimer(20, 66012, nil, "Tank|Healer", nil, 5, nil, CL.TANK_ICON)
 local timerPCold           = mod:NewBuffActiveTimer(15, 66013, nil, nil, nil, 5, nil, CL.HEALER_ICON)
@@ -217,7 +217,7 @@ function mod:CHAT_MSG_MONSTER_YELL(msg) -- Warmane workaround since submerge emo
 		timerAdds:Cancel()
 		warnAdds:Cancel()
 		warnSubmerge:Show()
-		warnEmergeSoon:Schedule(58.5)
+		warnEmergeSoon:Schedule(53.5)
 		timerEmerge:Start()
 		timerFreezingSlash:Stop()
 		if self:IsHeroic() then
@@ -225,7 +225,7 @@ function mod:CHAT_MSG_MONSTER_YELL(msg) -- Warmane workaround since submerge emo
 			timerShadowStrike:Cancel()
 			preWarnShadowStrike:Cancel()
 		end
-		self:Schedule(65, EmergeFix, self) -- Warmane workaround, since emerge boss emote is not being fired
+		self:Schedule(60, EmergeFix, self) -- Warmane workaround, since emerge boss emote is not being fired
 	end
 end
 
@@ -236,10 +236,10 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg)
 	-- 	timerAdds:Cancel()
 	-- 	warnAdds:Cancel()
 	-- 	warnSubmerge:Show()
-	-- 	warnEmergeSoon:Schedule(58.5)
+	-- 	warnEmergeSoon:Schedule(53.5)
 	-- 	timerEmerge:Start()
 	-- 	timerFreezingSlash:Stop()
-	-- 	self:Schedule(65, EmergeFix, self)	-- Warmane workaround, since emerge boss emote is not being fired
+	-- 	self:Schedule(60, EmergeFix, self)	-- Warmane workaround, since emerge boss emote is not being fired
 	if msg and msg:find(L.Emerge) then
 		self:Unschedule(EmergeFix) -- Warmane workaround: failsafe if script gets fixed eventually
 		self:SetStage(1)
