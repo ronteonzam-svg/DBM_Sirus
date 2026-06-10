@@ -170,19 +170,51 @@ local function warnNetherPower(self)
 	self.vb.netherPowerPlayVoice = false
 end
 
+local function hideWarning(self, i)
+	local frame = _G["DBMWarning"]
+	if frame then
+		local f = _G["DBMWarning" .. i]
+		if f then
+			f:Hide()
+		end
+		local tickerName = "font" .. i .. "ticker"
+		if frame[tickerName] then
+			local AceTimer = LibStub and LibStub("AceTimer-3.0")
+			if AceTimer then
+				AceTimer:CancelTimer(frame[tickerName])
+			end
+			frame[tickerName] = nil
+		end
+	end
+end
+
 local function warnNetherPowerRemoved(self)
 	if self.Options.ShowNetherPowerDec then
 		local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
+		local frame = _G["DBMWarning"]
 		local found = false
-		for i = 1, 3 do
-			local f = _G["DBMWarning" .. i]
-			if f and f:IsShown() then
-				local text = f:GetText()
-				if text and text:find(spellName, 1, true) then
-					local newText = text:gsub("%(%d+%)", "(" .. self.vb.netherPowerStacks .. ")")
-					f:SetText(newText)
-					found = true
-					break
+		if frame then
+			for i = 1, 3 do
+				local f = _G["DBMWarning" .. i]
+				if f and f:IsShown() then
+					local text = f:GetText()
+					if text and text:find(spellName, 1, true) then
+						local newText = text:gsub("%(%d+%)", "(" .. self.vb.netherPowerStacks .. ")")
+						f:SetText(newText)
+						f:SetAlpha(1)
+						local tickerName = "font" .. i .. "ticker"
+						if frame[tickerName] then
+							local AceTimer = LibStub and LibStub("AceTimer-3.0")
+							if AceTimer then
+								AceTimer:CancelTimer(frame[tickerName])
+							end
+							frame[tickerName] = nil
+						end
+						self:Unschedule(hideWarning)
+						self:Schedule(2.5, hideWarning, self, i)
+						found = true
+						break
+					end
 				end
 			end
 		end
