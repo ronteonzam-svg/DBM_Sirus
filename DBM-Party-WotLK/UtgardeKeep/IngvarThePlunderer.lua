@@ -127,25 +127,27 @@ function mod:UNIT_SPELLCAST_SUCCEEDED(uId, spellName, _, _, spellId)
 			self:SetStage(2)
 		end
 	elseif spellName == GetSpellInfo(42748) or spellId == 42748 or spellName == "Теневой топор" then
-		self.vb.lastAxeTime = GetTime()
-		if not self.vb.axeTargetWarned then
-			local targetName = uId and UnitName(uId .. "target")
-			if targetName then
-				if targetName == UnitName("player") then
-					specWarnAxeOnYou:Show()
-					specWarnAxeOnYou:Play("runaway")
-					yellAxe:Yell()
+		if self:AntiSpam(3, "Axe") then
+			self.vb.lastAxeTime = GetTime()
+			if not self.vb.axeTargetWarned then
+				local targetName = uId and UnitName(uId .. "target")
+				if targetName then
+					if targetName == UnitName("player") then
+						specWarnAxeOnYou:Show()
+						specWarnAxeOnYou:Play("runaway")
+						yellAxe:Yell()
+					else
+						warnAxeTarget:Show(targetName)
+					end
 				else
-					warnAxeTarget:Show(targetName)
+					specWarnAxe:Show()
+					DBM:PlaySoundFile("Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg")
 				end
-			else
-				specWarnAxe:Show()
-				DBM:PlaySoundFile("Interface\\AddOns\\DBM-Core\\sounds\\AirHorn.ogg")
 			end
+			self:UnscheduleMethod("ResetAxeTarget")
+			self.vb.axeTargetWarned = false
+			timerAxeReturn:Start()
+			specWarnAxeReturn:Schedule(8)
 		end
-		self:UnscheduleMethod("ResetAxeTarget")
-		self.vb.axeTargetWarned = false
-		timerAxeReturn:Start()
-		specWarnAxeReturn:Schedule(8)
 	end
 end

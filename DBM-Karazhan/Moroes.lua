@@ -10,9 +10,11 @@ mod:RegisterCombat("combat")
 
 mod:RegisterEvents(
 	"SPELL_CAST_START 305464 305463 305472",
-	"SPELL_AURA_APPLIED 305470 305478 305460",
+	"SPELL_AURA_APPLIED 305470 305478 305460 37066",
+	"SPELL_AURA_APPLIED_DOSE 37066",
 	-- "SPELL_AURA_REMOVED",
-	"SPELL_CAST_SUCCESS 305460"
+	"SPELL_CAST_SUCCESS 305460 29448",
+	"UNIT_HEALTH"
 -- "PLAYER_REGEN_DISABLED_AND_MESSAGE"
 )
 
@@ -21,6 +23,9 @@ mod:RegisterEvents(
 local warnPhase2    = mod:NewPhaseAnnounce(2)
 local warnDanceSoon = mod:NewSoonAnnounce(305472, 3)
 local warnDeathMark = mod:NewTargetAnnounce(305470, 4)
+local warningVanish    = mod:NewSpellAnnounce(29448, 3)
+local warningGarrote   = mod:NewTargetNoFilterAnnounce(37066, 4, nil, nil, "WarnGarrote")
+local warningGarroteRecount = mod:NewStackAnnounce(37066, 4, nil, nil, "WarnGarrote")
 
 
 local specWarnDance = mod:NewSpecialWarningSoak(305472, nil, nil, nil, 1, 2) -- танец
@@ -34,6 +39,8 @@ local timerDeathMarkCD = mod:NewCDTimer(25, 305470, nil, nil, nil, 3, nil, CL.HE
 local timerPhase2      = mod:NewPhaseTimer(180)
 local timerDanceCD     = mod:NewCDTimer(20, 305472, nil, nil, nil, 7) -- танец
 local timerSpreeCD     = mod:NewCDTimer(85, 305461, nil, nil, 6) -- череда
+local timerVanishCD    = mod:NewCDTimer(36, 29448, nil, nil, nil, 2)
+local timerGarroteCD   = mod:NewCDTimer(35.5, 37066, nil, nil, nil, 3)
 
 local berserkTimer = mod:NewBerserkTimer(525)
 
@@ -80,16 +87,21 @@ end
 -- end)
 
 
-function mod:OnCombatStart()
+function mod:OnCombatStart(delay)
+	delay = delay or 0
+	self.vb.moroes30 = false
 	DBM:FireCustomEvent("DBM_EncounterStart", 15687, "Moroes")
 	if self:IsDifficulty("heroic10") then
 		self.vb.phase = 1
 		self.vb.phase2 = false
-		timerDanceCD:Start()
-		timerPhase2:Start()
-		self:ScheduleMethod(178, "phase2warn")
+		timerDanceCD:Start(-delay)
+		timerPhase2:Start(-delay)
+		self:ScheduleMethod(178 - delay, "phase2warn")
 		warnDanceSoon:Show(17)
-		berserkTimer:Start()
+		berserkTimer:Start(-delay)
+	else
+		timerVanishCD:Start(30.9 - delay)
+		timerGarroteCD:Start(32 - delay)
 	end
 end
 
@@ -114,6 +126,9 @@ end
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(305460) then
 		timerSpreeCD:Start()
+	elseif args:IsSpellID(29448) then
+		warningVanish:Show()
+		timerVanishCD:Start()
 	end
 end
 
@@ -139,6 +154,28 @@ function mod:SPELL_AURA_APPLIED(args)
 			name        = name[math.random(#name)]
 			self.vb.ora = false
 			self:ScheduleMethod(5, "resetOra")
+		end
+	elseif args:IsSpellID(37066) then
+		local amount = args.amount or 1
+		if amount > 1 then
+			warningGarroteRecount:Show(args.destName, amount)
+		else
+			warningGarrote:Show(args.destName)
+		end
+		timerGarroteCD:Start()
+	end
+end
+
+mod.SPELL_AURA_APPLIED_DOSE = mod.SPELL_AURA_APPLIED
+
+function mod:UNIT_HEALTH(uId)
+	if self:GetUnitCreatureId(uId) == 15687 then
+		if not self:IsDifficulty("heroic10") then
+			if not self.vb.moroes30 and DBM:GetBossHP(15687) <= 30 then
+				self.vb.moroes30 = true
+				timerVanishCD:Cancel()
+				timerGarroteCD:Cancel()
+			end
 		end
 	end
 end

@@ -13,7 +13,7 @@ mod:RegisterEvents(
 )
 
 --обычка--
-local timerEvo = mod:NewNextTimer(112, 30254) -- Прилив сил
+local timerEvo = mod:NewNextTimer(111.5, 30254) -- Прилив сил
 
 -- героик --
 local warnUnstableTar = mod:NewAnnounce("WarnUnstableTar", 3, 305309)
