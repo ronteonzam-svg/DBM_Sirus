@@ -105,6 +105,8 @@ function mod:OnCombatEnd(wipe)
 	end
 	DBM.BossHealth:Clear()
 	--self:Unschedule(PortalLoop)
+	self:Unschedule(warnNetherPower)
+	self:Unschedule(warnNetherPowerRemoved)
 end
 
 local setIncinerateTarget, clearIncinerateTarget, updateInfoFrame
@@ -159,6 +161,7 @@ do
 end
 
 local function warnNetherPower(self)
+	if not self:IsInCombat() then return end
 	if self.Options.SpecWarn67009spell then
 		specWarnNetherPower:Show()
 		if self.vb.netherPowerPlayVoice and self.vb.netherPowerStacks > 0 then
@@ -189,6 +192,7 @@ local function hideWarning(self, i)
 end
 
 local function warnNetherPowerRemoved(self)
+	if not self:IsInCombat() then return end
 	if self.Options.ShowNetherPowerDec then
 		local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
 		local frame = _G["DBMWarning"]

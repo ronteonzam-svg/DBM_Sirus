@@ -31,7 +31,8 @@ L:SetWarningLocalization{
 }
 
 L:SetOptionLocalization{
-	DBM_MOROES_VANISH_FADED	= "Show vanish fade warning"
+	DBM_MOROES_VANISH_FADED	= "Show vanish fade warning",
+	WarnGarrote				= "Announce targets of $spell:37066"
 }
 
 L:SetMiscLocalization{
