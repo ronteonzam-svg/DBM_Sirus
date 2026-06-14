@@ -252,7 +252,7 @@ function mod:SPELL_AURA_APPLIED(args)
 	elseif args:IsSpellID(66532, 66963, 66964, 66965) then -- Fel Fireball (announce if tank gets debuff for dispel)
 		SpecWarnFelFireballDispel:Show(args.destName)
 		SpecWarnFelFireballDispel:Play("helpdispel")
-	elseif args:IsSpellID(66228, 67106, 67107, 67108) and self:GetCIDFromGUID(args.destGUID) == 34780 then
+	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
 		local diff = DBM:GetCurrentInstanceDifficulty()
 		local stacks = (diff == "heroic25" or diff == "normal25") and 10 or 5
 		self.vb.netherPowerStacks = args.amount or stacks
@@ -263,7 +263,7 @@ function mod:SPELL_AURA_APPLIED(args)
 end
 
 function mod:SPELL_AURA_APPLIED_DOSE(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) and self:GetCIDFromGUID(args.destGUID) == 34780 then 
+	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then 
 		self.vb.netherPowerStacks = args.amount or 1
 		self.vb.netherPowerPlayVoice = true
 		self:Unschedule(warnNetherPower)
@@ -272,7 +272,7 @@ function mod:SPELL_AURA_APPLIED_DOSE(args)
 end
 
 function mod:SPELL_AURA_REMOVED_DOSE(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) and self:GetCIDFromGUID(args.destGUID) == 34780 then 
+	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then 
 		local amount = args.amount or 0
 		if not self.vb.netherPowerStacks or amount < self.vb.netherPowerStacks then
 			self.vb.netherPowerStacks = amount
@@ -293,7 +293,7 @@ function mod:SPELL_AURA_REMOVED(args)
 			self:RemoveIcon(args.destName)
 		end
 		clearIncinerateTarget(self, args.destName)
-	elseif args:IsSpellID(66228, 67106, 67107, 67108) and self:GetCIDFromGUID(args.destGUID) == 34780 then	
+	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then	
 		self.vb.netherPowerStacks = 0
 		self:Unschedule(warnNetherPowerRemoved)
 		self:Schedule(0.15, warnNetherPowerRemoved, self)
