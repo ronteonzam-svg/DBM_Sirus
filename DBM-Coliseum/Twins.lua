@@ -221,12 +221,42 @@ do
 		sortedLines[#sortedLines + 1] = key
 	end
 
+	local function getUnitIdFromGUID(guid)
+		if not guid then return nil end
+		if UnitGUID("boss1") == guid then return "boss1" end
+		if UnitGUID("boss2") == guid then return "boss2" end
+		return DBM:GetUnitIDFromGUID(guid)
+	end
+
 	local function getShieldHP()
-		return math.max(1, math.floor(absorbRemaining / maxAbsorb * 100))
+		if UnitGetTotalAbsorbs and shieldedMob then
+			local uId = getUnitIdFromGUID(shieldedMob)
+			if uId then
+				local absorb = UnitGetTotalAbsorbs(uId)
+				if absorb then
+					absorbRemaining = absorb
+					if absorbRemaining > maxAbsorb then
+						maxAbsorb = absorbRemaining
+					end
+				end
+			end
+		end
+		return math.max(1, math.floor(absorbRemaining / math.max(1, maxAbsorb) * 100))
+	end
+
+	local function formatAbsorb(value)
+		if value >= 1000000 then
+			return string.format("%.1fm", value / 1000000)
+		elseif value >= 1000 then
+			return string.format("%.1fk", value / 1000)
+		else
+			return tostring(math.max(0, value))
+		end
 	end
 
 	frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	frame:SetScript("OnEvent", function(self, _, _, subEvent, _, _, _, destGUID, _, _, ...)
+		if UnitGetTotalAbsorbs then return end
 		if shieldedMob == destGUID then
 			local absorbed
 			if subEvent == "SWING_MISSED" then
@@ -242,6 +272,13 @@ do
 
 	function showShieldHealthBar(self, mob, shieldName, absorb)
 		shieldedMob = mob
+		if UnitGetTotalAbsorbs then
+			local uId = getUnitIdFromGUID(mob)
+			local serverAbsorb = uId and UnitGetTotalAbsorbs(uId)
+			if serverAbsorb and serverAbsorb > 0 then
+				absorb = serverAbsorb
+			end
+		end
 		absorbRemaining = absorb
 		maxAbsorb = absorb
 		DBM.BossHealth:RemoveBoss(getShieldHP)
@@ -251,6 +288,7 @@ do
 
 	function hideShieldHealthBar()
 		DBM.BossHealth:RemoveBoss(getShieldHP)
+		shieldedMob = nil
 	end
 
 	function updateInfoFrame()
@@ -282,12 +320,11 @@ do
 				else
 					percentColor = "FF0000" -- Red
 				end
-				leftText = "|cff" .. colorHex .. displayName .. "|r: |cff" .. percentColor .. percent .. "%|r"
+				leftText = "|cff" .. colorHex .. displayName .. "|r: |cff" .. percentColor .. formatAbsorb(absorbRemaining) .. "|r"
 			elseif isUsed then
+				leftText = "|cff808080" .. displayName .. "|r"
 				if isShield then
-					leftText = "|cff808080" .. displayName .. ": 0%|r"
-				else
-					leftText = "|cff808080" .. displayName .. "|r"
+					leftText = leftText .. ": |cff8080800|r"
 				end
 			else
 				local colorHex = isDarkColor and "9932CD" or "FFCC00"
