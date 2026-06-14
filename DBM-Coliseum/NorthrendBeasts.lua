@@ -300,7 +300,7 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg, _, _, _, target)
 	if (msg:match(L.Charge) or msg:find(L.Charge)) and target then
 		target = DBM:GetUnitFullName(target)
 		warnCharge:Show(target)
-		timerNextCrash:Start(59)
+		timerNextCrash:Start(51)
 		if self.Options.ClearIconsOnIceHowl then
 			self:ClearIcons()
 		end
@@ -345,6 +345,10 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 			timerCombatStart:Start()
 		end
 	elseif msg == L.Phase2 or msg:find(L.Phase2) then
+		if self:IsHeroic() then
+			timerNextBoss:Cancel()
+			timerNextBoss:Start(190)
+		end
 		self:ScheduleMethod(13.5, "WormsEmerge")
 		timerCombatStart:Start(11)
 		updateHealthFrame(2)
@@ -361,7 +365,7 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		self:UnscheduleMethod("WormsSubmerge")
 		self:UnscheduleMethod("WormsEmerge")
 		timerCombatStart:Start(5)
-		timerNextCrash:Start() -- 10 + 41
+		timerNextCrash:Start(37.9)
 		timerNextBoss:Cancel()
 		timerSubmerge:Cancel()
 		timerEmerge:Cancel()
