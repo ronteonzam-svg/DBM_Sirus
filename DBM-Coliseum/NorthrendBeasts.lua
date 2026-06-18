@@ -300,7 +300,7 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg, _, _, _, target)
 	if (msg:match(L.Charge) or msg:find(L.Charge)) and target then
 		target = DBM:GetUnitFullName(target)
 		warnCharge:Show(target)
-		timerNextCrash:Start(51)
+		timerNextCrash:Start(59)
 		if self.Options.ClearIconsOnIceHowl then
 			self:ClearIcons()
 		end
