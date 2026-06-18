@@ -1,14 +1,14 @@
 local mod = DBM:NewMod("Maiden", "DBM-Karazhan")
 local L   = mod:GetLocalizedStrings()
 
-mod:SetRevision("20220831140000")
+mod:SetRevision("20260612191800")
 mod:SetCreatureID(16457)
 mod:RegisterCombat("combat")
 
 mod:RegisterEvents(
 	"SPELL_CAST_START 305286 29511",
 	"SPELL_AURA_APPLIED 305271 305285 29522",
-	"SPELL_AURA_REMOVED 305285"
+	"SPELL_AURA_REMOVED 305285 29522"
 -- "SPELL_INTERRUPT"
 )
 mod:AddTimerLine(L.Normal)
