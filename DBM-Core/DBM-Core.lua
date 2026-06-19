@@ -5329,6 +5329,8 @@ do
 		["normal40"] = "normal",
 		["heroic10"] = "heroic",
 		["heroic25"] = "heroic25",
+		--Fallback for unknown/custom difficulties to avoid nil concatenation on stats keys
+		["unknown"] = "normal",
 	}
 
 	function DBM:StartCombat(mod, delay, event, synced, syncedStartHp, syncedEvent)
@@ -6232,8 +6234,9 @@ function DBM:GetCurrentInstanceDifficulty()
 			return "mythic", difficultyName .. " - ", difficulty, maxPlayers
 		end
 	end
-	-- Fallback: unknown instance type/difficulty — return as normal5 to avoid nil crashes
-	return "normal5", (difficultyName or "?") .. " - ", difficulty or 1, maxPlayers or 5
+	-- Safety net: never return nil fields; several callers concatenate difficulty text and stat keys.
+	local safeDifficultyName = difficultyName or L.UNKNOWN
+	return "unknown", safeDifficultyName .. " - ", difficulty or 0, maxPlayers or 0
 end
 
 function DBM:GetCurrentArea()

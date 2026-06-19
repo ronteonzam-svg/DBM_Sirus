@@ -205,7 +205,7 @@ function mod:UNIT_HEALTH(uId)
 				self:SetStage(3)
 			end
 		elseif self:IsNormal() then
-			 if  not self.vb.warned_preP2 and DBM:GetBossHP(17257) <= 33 then
+			if  not self.vb.warned_preP2 and DBM:GetBossHP(17257) <= 33 then
 				self.vb.warned_preP2 = true
 				warnPhase3Soon:Show()
 			elseif not self.vb.warned_preP3 and DBM:GetBossHP(17257) <= 30 then
