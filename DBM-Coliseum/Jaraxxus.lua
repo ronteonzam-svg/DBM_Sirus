@@ -239,7 +239,7 @@ function mod:SPELL_CAST_START(args)
 end
 
 function mod:SPELL_CAST_SUCCESS(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetSourceCreatureID() == 34780 then -- Nether Power (boss only)
+	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetSrcCreatureID() == 34780 then -- Nether Power (boss only)
 		timerNetherPowerCD:Start()
 	elseif args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
 		timerVolcanoCD:Start()
