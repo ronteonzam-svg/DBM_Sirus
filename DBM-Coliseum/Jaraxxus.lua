@@ -46,10 +46,10 @@ local specWarnNetherPower       = mod:NewSpecialWarningSpell(67009, nil, nil, ni
 
 local timerCombatStart          = mod:NewCombatTimer(20)                         --roleplay for first pull 34
 local timerFlame                = mod:NewTargetTimer(8, 66197, nil, nil, nil, 3)
-local timerFlameCD              = mod:NewCDTimer(30, 66197, nil, nil, nil, 3)
+local timerFlameCD              = mod:NewCDTimer(32.5, 66197, nil, nil, nil, 3)
 local timerNetherPowerCD        = mod:NewCDTimer(40, 67009, nil, nil, nil, 5, nil, CL.MAGIC_ICON)
 local timerFlesh                = mod:NewTargetTimer(12, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
-local timerFleshCD              = mod:NewCDTimer(23, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
+local timerFleshCD              = mod:NewCDTimer(22.5, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
 local timerPortalCD             = mod:NewCDTimer(120, 66269, nil, nil, nil, 1)
 local timerVolcanoCD            = mod:NewCDTimer(120, 66258, nil, nil, nil, 1)
 
@@ -88,8 +88,8 @@ function mod:OnCombatStart(delay)
 	timerVolcanoCD:Start(82 - delay)
 	warnVolcanoSoon:Schedule(77 - delay)
 	timerNetherPowerCD:Start(40.1 - delay)
-	timerFleshCD:Start(20 - delay)
-	timerFlameCD:Start(30 - delay)
+	timerFleshCD:Start(24 - delay)
+	timerFlameCD:Start(32 - delay)
 	enrageTimer:Start(-delay)
 end
 
