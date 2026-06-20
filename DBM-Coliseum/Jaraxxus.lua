@@ -17,7 +17,7 @@ mod:RegisterEvents(
 
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 66532 66963 66964 66965",
-	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66269 67898 67899 67900 66263 66264 67103 67104 67105 68404 68405 68406 66197 68123 68124 68125",
+	"SPELL_CAST_SUCCESS 67901 67902 67903 66258 66269 67898 67899 67900 66263 66264 67103 67104 67105 68404 68405 68406 66197 68123 68124 68125",
 	"SPELL_AURA_APPLIED 67051 67050 67049 66237 66197 68123 68124 68125 66334 67905 67906 67907 66532 66963 66964 66965 66228 67106 67107 67108",
 	"SPELL_AURA_APPLIED_DOSE 66228 67106 67107 67108",
 	"SPELL_AURA_REMOVED_DOSE 66228 67106 67107 67108",
@@ -239,9 +239,7 @@ function mod:SPELL_CAST_START(args)
 end
 
 function mod:SPELL_CAST_SUCCESS(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetSrcCreatureID() == 34780 then -- Nether Power (boss only)
-		timerNetherPowerCD:Start()
-	elseif args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
+	if args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
 		timerVolcanoCD:Start()
 		warnVolcanoSoon:Schedule(110)
 	--elseif args:IsSpellID(66263, 66264, 66269, 67103, 67104, 67105, 67898, 67899, 67900, 68404, 68405, 68406) then -- Nether Portal
@@ -291,6 +289,7 @@ function mod:SPELL_AURA_APPLIED(args)
 		SpecWarnFelFireballDispel:Show(args.destName)
 		SpecWarnFelFireballDispel:Play("helpdispel")
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
+		timerNetherPowerCD:Start()
 		local diff = DBM:GetCurrentInstanceDifficulty()
 		local stacks = (diff == "heroic25" or diff == "normal25") and 10 or 5
 		self.vb.netherPowerStacks = args.amount or stacks
