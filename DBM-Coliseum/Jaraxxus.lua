@@ -17,8 +17,7 @@ mod:RegisterEvents(
 
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 66532 66963 66964 66965",
-	"SPELL_CAST_SUCCESS 66228 67106 67107 67108 67901 67902 67903 66258 66197 68123 68124 68125",
-	"SPELL_SUMMON 66269 67898 67899 67900",
+	"SPELL_CAST_SUCCESS 67901 67902 67903 66258 66269 67898 67899 67900 66263 66264 67103 67104 67105 68404 68405 68406 66197 68123 68124 68125",
 	"SPELL_AURA_APPLIED 67051 67050 67049 66237 66197 68123 68124 68125 66334 67905 67906 67907 66532 66963 66964 66965 66228 67106 67107 67108",
 	"SPELL_AURA_APPLIED_DOSE 66228 67106 67107 67108",
 	"SPELL_AURA_REMOVED_DOSE 66228 67106 67107 67108",
@@ -44,12 +43,11 @@ local SpecWarnFelFireball       = mod:NewSpecialWarningInterrupt(66532, "HasInte
 local SpecWarnFelFireballDispel = mod:NewSpecialWarningDispel(66532, "RemoveMagic", nil, 2, 1, 2)
 
 local specWarnNetherPower       = mod:NewSpecialWarningSpell(67009, nil, nil, nil, 1, 2)
-local warnNetherPowerRemovedAnnounce = mod:NewCountAnnounce(67009, 1, nil, nil, false, nil, nil, true)
 
 local timerCombatStart          = mod:NewCombatTimer(20)                         --roleplay for first pull 34
 local timerFlame                = mod:NewTargetTimer(8, 66197, nil, nil, nil, 3)
 local timerFlameCD              = mod:NewCDTimer(30, 66197, nil, nil, nil, 3)
-local timerNetherPowerCD        = mod:NewCDTimer(42.5, 67009, nil, nil, nil, 5, nil, CL.MAGIC_ICON)
+local timerNetherPowerCD        = mod:NewCDTimer(40, 67009, nil, nil, nil, 5, nil, CL.MAGIC_ICON)
 local timerFlesh                = mod:NewTargetTimer(12, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
 local timerFleshCD              = mod:NewCDTimer(23, 66237, nil, "Healer", 2, 5, nil, CL.HEALER_ICON)
 local timerPortalCD             = mod:NewCDTimer(120, 66269, nil, nil, nil, 1)
@@ -62,13 +60,11 @@ mod:AddSetIconOption("IncinerateFleshIcon", 66237, true, 0, { 8 })
 mod:AddInfoFrameOption(66237, true)
 mod:RemoveOption("HealthFrame")
 mod:AddBoolOption("IncinerateShieldFrame", false, "misc")
-mod:AddBoolOption("ShowNetherPowerDec", true, "announce", nil, nil, nil, 67009)
 
 mod.vb.fleshCount = 0
 mod.vb.netherPowerStacks = 0
 local incinerateFleshTargetName
 
---[[
 local function PortalLoop(self)
 	if self:IsInCombat() then
 		timerPortalCD:Start(120)
@@ -76,7 +72,6 @@ local function PortalLoop(self)
 		self:Schedule(120, PortalLoop, self)
 	end
 end
---]]
 
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 34780, "Lord Jaraxxus")
@@ -89,12 +84,12 @@ function mod:OnCombatStart(delay)
 	self.vb.netherPowerPlayVoice = false
 	timerPortalCD:Start(20 - delay)
 	warnPortalSoon:Schedule(15 - delay)
-	--self:Schedule(20 - delay, PortalLoop, self)
+	self:Schedule(20 - delay, PortalLoop, self)
 	timerVolcanoCD:Start(82 - delay)
 	warnVolcanoSoon:Schedule(77 - delay)
-	timerNetherPowerCD:Start(15 - delay)
-	timerFleshCD:Start(14 - delay)
-	timerFlameCD:Start(20 - delay)
+	timerNetherPowerCD:Start(40.1 - delay)
+	timerFleshCD:Start(20 - delay)
+	timerFlameCD:Start(30 - delay)
 	enrageTimer:Start(-delay)
 end
 
@@ -104,9 +99,10 @@ function mod:OnCombatEnd(wipe)
 		DBM.InfoFrame:Hide()
 	end
 	DBM.BossHealth:Clear()
-	--self:Unschedule(PortalLoop)
+	self:Unschedule(PortalLoop)
 	self:Unschedule(warnNetherPower)
-	self:Unschedule(warnNetherPowerRemoved)
+	self:Unschedule(netherPowerFrameHide)
+	if netherPowerFrame then netherPowerFrame:Hide() end
 end
 
 local setIncinerateTarget, clearIncinerateTarget, updateInfoFrame
@@ -160,6 +156,70 @@ do
 	end
 end
 
+-- Постоянный счётчик стаков Nether Power
+local netherPowerFrame
+
+local function createNetherPowerFrame()
+	if netherPowerFrame then return end
+	netherPowerFrame = CreateFrame("Frame", "DBMJaraxxusNetherPowerCounter", UIParent)
+	netherPowerFrame:SetSize(280, 30)
+	netherPowerFrame:SetPoint("TOP", UIParent, "TOP", 0, -235)
+	netherPowerFrame:SetFrameStrata("HIGH")
+	netherPowerFrame:SetClampedToScreen(true)
+	netherPowerFrame:Hide()
+
+	-- Левая половина фона (плавное затухание влево от центра)
+	local bgLeft = netherPowerFrame:CreateTexture(nil, "BACKGROUND")
+	bgLeft:SetSize(140, 30)
+	bgLeft:SetPoint("RIGHT", netherPowerFrame, "CENTER", 0, 0)
+	bgLeft:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+	bgLeft:SetGradientAlpha("HORIZONTAL", 0, 0, 0, 0, 0, 0, 0, 0.6)
+
+	-- Правая половина фона (плавное затухание вправо от центра)
+	local bgRight = netherPowerFrame:CreateTexture(nil, "BACKGROUND")
+	bgRight:SetSize(140, 30)
+	bgRight:SetPoint("LEFT", netherPowerFrame, "CENTER", 0, 0)
+	bgRight:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+	bgRight:SetGradientAlpha("HORIZONTAL", 0, 0, 0, 0.6, 0, 0, 0, 0)
+
+	-- Текстовая строка (Название заклинания и стаки)
+	local label = netherPowerFrame:CreateFontString(nil, "OVERLAY")
+	label:SetFont("Fonts\\ARIALN.TTF", 18, "OUTLINE")
+	label:SetJustifyH("CENTER")
+	label:SetPoint("CENTER", netherPowerFrame, "CENTER", 12, 0)
+	label:SetShadowColor(0, 0, 0, 1)
+	label:SetShadowOffset(1.5, -1.5)
+	netherPowerFrame.label = label
+
+	-- Иконка заклинания
+	local spellTexture = select(3, DBM:GetSpellInfo(67009)) or "Interface\\Icons\\Spell_Arcane_Portal"
+	local icon = netherPowerFrame:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(22, 22)
+	icon:SetPoint("RIGHT", label, "LEFT", -8, 0)
+	icon:SetTexture(spellTexture)
+	
+	-- Рамка для иконки
+	local iconBorder = netherPowerFrame:CreateTexture(nil, "BACKGROUND", nil, 1)
+	iconBorder:SetSize(24, 24)
+	iconBorder:SetPoint("CENTER", icon, "CENTER", 0, 0)
+	iconBorder:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+	iconBorder:SetVertexColor(0, 0, 0, 0.8)
+end
+
+local function netherPowerFrameHide(self)
+	if netherPowerFrame then
+		netherPowerFrame:Hide()
+	end
+end
+
+local function updateNetherPowerFrame(self, stacks)
+	self:Unschedule(netherPowerFrameHide)
+	if not netherPowerFrame then createNetherPowerFrame() end
+	local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
+	netherPowerFrame.label:SetText(string.format("|cffffffff%s:|r |cff69ccf0%d|r", spellName, stacks))
+	netherPowerFrame:Show()
+end
+
 local function warnNetherPower(self)
 	if not self:IsInCombat() then return end
 	if self.Options.SpecWarn67009spell then
@@ -167,65 +227,8 @@ local function warnNetherPower(self)
 		if self.vb.netherPowerPlayVoice and self.vb.netherPowerStacks > 0 then
 			specWarnNetherPower:Play("dispelboss")
 		end
-	elseif self.Options.ShowNetherPowerDec then
-		warnNetherPowerRemovedAnnounce:Show(self.vb.netherPowerStacks)
 	end
 	self.vb.netherPowerPlayVoice = false
-end
-
-local function hideWarning(self, i)
-	local frame = _G["DBMWarning"]
-	if frame then
-		local f = _G["DBMWarning" .. i]
-		if f then
-			f:Hide()
-		end
-		local tickerName = "font" .. i .. "ticker"
-		if frame[tickerName] then
-			local AceTimer = LibStub and LibStub("AceTimer-3.0")
-			if AceTimer then
-				AceTimer:CancelTimer(frame[tickerName])
-			end
-			frame[tickerName] = nil
-		end
-	end
-end
-
-local function warnNetherPowerRemoved(self)
-	if not self:IsInCombat() then return end
-	if self.Options.ShowNetherPowerDec then
-		local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
-		local frame = _G["DBMWarning"]
-		local found = false
-		if frame then
-			for i = 1, 3 do
-				local f = _G["DBMWarning" .. i]
-				if f and f:IsShown() then
-					local text = f:GetText()
-					if text and text:find(spellName, 1, true) then
-						local newText = text:gsub("%(%d+%)", "(" .. self.vb.netherPowerStacks .. ")")
-						f:SetText(newText)
-						f:SetAlpha(1)
-						local tickerName = "font" .. i .. "ticker"
-						if frame[tickerName] then
-							local AceTimer = LibStub and LibStub("AceTimer-3.0")
-							if AceTimer then
-								AceTimer:CancelTimer(frame[tickerName])
-							end
-							frame[tickerName] = nil
-						end
-						self:Unschedule(hideWarning)
-						self:Schedule(2.5, hideWarning, self, i)
-						found = true
-						break
-					end
-				end
-			end
-		end
-		if not found then
-			warnNetherPowerRemovedAnnounce:Show(self.vb.netherPowerStacks)
-		end
-	end
 end
 
 function mod:SPELL_CAST_START(args)
@@ -235,19 +238,14 @@ function mod:SPELL_CAST_START(args)
 	end
 end
 
-function mod:SPELL_SUMMON(args)
-	if args:IsSpellID(66269, 67898, 67899, 67900) then -- Nether Portal
-		timerPortalCD:Start()
-		warnPortalSoon:Schedule(115)
-	end
-end
-
 function mod:SPELL_CAST_SUCCESS(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) then -- Nether Power
-		timerNetherPowerCD:Start()
-	elseif args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
+	if args:IsSpellID(67901, 67902, 67903, 66258) then -- Infernal Volcano
 		timerVolcanoCD:Start()
 		warnVolcanoSoon:Schedule(110)
+	--elseif args:IsSpellID(66263, 66264, 66269, 67103, 67104, 67105, 67898, 67899, 67900, 68404, 68405, 68406) then -- Nether Portal
+	--	timerPortalCD:Start()
+	--	warnPortalSoon:Schedule(110)
+	--	print("|cff00ff00[DBM Debug]|r Врата пустоты сработали! ID заклинания: " .. tostring(args.spellId))
 	elseif args:IsSpellID(66197, 68123, 68124, 68125) then -- Legion Flame
 		warnFlame:Show(args.destName)
 	end
@@ -291,21 +289,24 @@ function mod:SPELL_AURA_APPLIED(args)
 		SpecWarnFelFireballDispel:Show(args.destName)
 		SpecWarnFelFireballDispel:Play("helpdispel")
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
+		timerNetherPowerCD:Start()
 		local diff = DBM:GetCurrentInstanceDifficulty()
 		local stacks = (diff == "heroic25" or diff == "normal25") and 10 or 5
 		self.vb.netherPowerStacks = args.amount or stacks
 		self.vb.netherPowerPlayVoice = true
 		self:Unschedule(warnNetherPower)
 		self:Schedule(0.15, warnNetherPower, self)
+		updateNetherPowerFrame(self, self.vb.netherPowerStacks)
 	end
 end
 
 function mod:SPELL_AURA_APPLIED_DOSE(args)
-	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
+	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then 
 		self.vb.netherPowerStacks = args.amount or 1
 		self.vb.netherPowerPlayVoice = true
 		self:Unschedule(warnNetherPower)
 		self:Schedule(0.15, warnNetherPower, self)
+		updateNetherPowerFrame(self, self.vb.netherPowerStacks)
 	end
 end
 
@@ -314,8 +315,7 @@ function mod:SPELL_AURA_REMOVED_DOSE(args)
 		local amount = args.amount or 0
 		if not self.vb.netherPowerStacks or amount < self.vb.netherPowerStacks then
 			self.vb.netherPowerStacks = amount
-			self:Unschedule(warnNetherPowerRemoved)
-			self:Schedule(0.15, warnNetherPowerRemoved, self)
+			updateNetherPowerFrame(self, self.vb.netherPowerStacks)
 		end
 	end
 end
@@ -333,8 +333,8 @@ function mod:SPELL_AURA_REMOVED(args)
 		clearIncinerateTarget(self, args.destName)
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
 		self.vb.netherPowerStacks = 0
-		self:Unschedule(warnNetherPowerRemoved)
-		self:Schedule(0.15, warnNetherPowerRemoved, self)
+		updateNetherPowerFrame(self, 0)
+		self:Schedule(2, netherPowerFrameHide, self)
 	end
 end
 
@@ -357,3 +357,5 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		timerCombatStart:Start()
 	end
 end
+
+

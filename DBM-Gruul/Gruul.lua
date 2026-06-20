@@ -30,16 +30,19 @@ local timerFurnaceInactive          = mod:NewTimer(43,"TimerFurnaceInactive", 30
 local timerBurnedFlesh              = mod:NewTimer(20,"TimerBurnedFlesh", 305204)-- Обожженная плоть
 
 local rockCounter = 1
+local firstEcho = true
 
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 19044, "Gruul the Dragonkiller")
+	firstEcho = true
 	if mod:IsDifficulty("heroic25") or mod:IsDifficulty("heroic10") then
 		timerHandCD:Start(24)
 		timerHateStrike:Start(20)
 		timerStunningBlow:Start(15)
 	elseif mod:IsDifficulty("normal25") or mod:IsDifficulty("normal10") then
-		timerEarthStrikeCD:Start(35)
-		timerRockCD:Start(28)
+		timerEarthStrikeCD:Start(35 - delay)
+		timerRockCD:Start(27 - delay)
+		timerEchoCD:Start(117 - delay)
 		rockCounter = 1
 	end
 end
@@ -51,7 +54,9 @@ end
 function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(33525) then
 		 timerEarthStrikeCD:Start()
-		 timerEchoCD:Start(25)
+		 if not firstEcho then
+		 	timerEchoCD:Start(25)
+		 end
 		 timerRockCD:Start(30 - rockCounter*2 + 4)
 		 if rockCounter <= 11 then rockCounter = rockCounter + 1 end
 		elseif args:IsSpellID(305197) then
@@ -78,6 +83,7 @@ function mod:SPELL_AURA_APPLIED(args)
 		timerBurnedFlesh:Start()
 	elseif args:IsSpellID(36297) then
 		timerEchoCD:Start()
+		firstEcho = false
 	elseif args:IsSpellID(36240) and args:IsPlayer() then
 		specWarnRock:Show()
 	end

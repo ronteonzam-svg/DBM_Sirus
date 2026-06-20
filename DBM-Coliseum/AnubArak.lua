@@ -47,8 +47,8 @@ local timerSubmerge        = mod:NewTimer(80, "TimerSubmerge",
 	"Interface\\AddOns\\DBM-Core\\textures\\CryptFiendBurrow.blp", nil, nil, 6, DBM_COMMON_L.IMPORTANT_ICON, nil, 1)
 local timerEmerge          = mod:NewTimer(60, "TimerEmerge",
 	"Interface\\AddOns\\DBM-Core\\textures\\CryptFiendUnBurrow.blp", nil, nil, 6, DBM_COMMON_L.IMPORTANT_ICON, nil, 1)
-local timerFreezingSlash   = mod:NewCDTimer(20, 66012, nil, "Tank|Healer", nil, 5, nil, CL.TANK_ICON)
-local timerPCold           = mod:NewBuffActiveTimer(15, 66013, nil, nil, nil, 5, nil, CL.HEALER_ICON)
+local timerFreezingSlash   = mod:NewCDTimer(15, 66012, nil, "Tank|Healer", nil, 5, nil, CL.TANK_ICON)
+local timerPCold           = mod:NewBuffActiveTimer(18, 66013, nil, nil, nil, 5, nil, CL.HEALER_ICON)
 local timerShadowStrike    = mod:NewNextTimer(30, 66134, nil, nil, nil, 3, nil, CL.DEADLY_ICON, nil, 3)
 local timerHoP             = mod:NewBuffActiveTimer(10, 10278, nil, nil, nil, 5) --So we will track bops to make this easier.
 
@@ -94,6 +94,7 @@ local function EmergeFix(self)
 	warnEmerge:Show()
 	warnSubmergeSoon:Schedule(70)
 	timerSubmerge:Start()
+	timerFreezingSlash:Start()
 	if self:IsHeroic() then
 		ShadowStrike(self)
 	end
@@ -251,6 +252,7 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg)
 		warnEmerge:Show()
 		warnSubmergeSoon:Schedule(70)
 		timerSubmerge:Start()
+		timerFreezingSlash:Start()
 		if self:IsHeroic() then
 			ShadowStrike(self)
 		end
