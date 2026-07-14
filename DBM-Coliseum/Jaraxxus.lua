@@ -60,6 +60,7 @@ mod:AddSetIconOption("IncinerateFleshIcon", 66237, true, 0, { 8 })
 mod:AddInfoFrameOption(66237, true)
 mod:RemoveOption("HealthFrame")
 mod:AddBoolOption("IncinerateShieldFrame", false, "misc")
+mod:AddBoolOption("ShowNetherPowerDec", true, "announce", nil, nil, nil, 67009)
 
 mod.vb.fleshCount = 0
 mod.vb.netherPowerStacks = 0
@@ -213,6 +214,11 @@ local function netherPowerFrameHide(self)
 end
 
 local function updateNetherPowerFrame(self, stacks)
+	if not self:IsInCombat() then return end
+	if not self.Options.ShowNetherPowerDec then
+		if netherPowerFrame then netherPowerFrame:Hide() end
+		return
+	end
 	self:Unschedule(netherPowerFrameHide)
 	if not netherPowerFrame then createNetherPowerFrame() end
 	local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
@@ -312,6 +318,7 @@ end
 
 function mod:SPELL_AURA_REMOVED_DOSE(args)
 	if args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
+		if not self:IsInCombat() then return end
 		local amount = args.amount or 0
 		if not self.vb.netherPowerStacks or amount < self.vb.netherPowerStacks then
 			self.vb.netherPowerStacks = amount
@@ -332,6 +339,7 @@ function mod:SPELL_AURA_REMOVED(args)
 		end
 		clearIncinerateTarget(self, args.destName)
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
+		if not self:IsInCombat() then return end
 		self.vb.netherPowerStacks = 0
 		updateNetherPowerFrame(self, 0)
 		self:Schedule(2, netherPowerFrameHide, self)
