@@ -359,13 +359,19 @@ L:SetGeneralLocalization{
 }
 
 L:SetWarningLocalization{
+	SpecWarnGravityDefianceTargetYou = "Неподвластность притяжению на Вас!",
+	SpecWarnMagicCast = "Несравненная магия — Взлетаем!"
 }
 
 L:SetTimerLocalization{
 }
 
 L:SetOptionLocalization{
-
+	SpecWarn305537run = "Спец-предупреждение для мили, когда $spell:305537 в Вас",
+	SpecWarnGravityDefianceTargetYou = "Спец-предупреждение для рдд/хилов, когда $spell:305537 в Вас",
+	warnGravityDefiance = "Объявлять цели заклинания $spell:305537",
+	SetIconOnGravityTarget = "Устанавливать метку на цель заклинания $spell:305537",
+	SpecWarnMagicCast = "Показывать спец-предупреждение для $spell:305535"
 }
 
 L:SetMiscLocalization{

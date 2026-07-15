@@ -14,11 +14,14 @@ mod:RegisterEvents(
 )
 
 local timerMagicCD     = mod:NewCDTimer(46, 305535)
+local timerMagicCast   = mod:NewCastTimer(5, 305535, nil, nil, nil, 2)
 --local timerCombatStart = mod:NewCombatTimer(42)
 
 -- Prominent special warnings in the center of the screen
-local specWarnGravityDefianceTarget = mod:NewSpecialWarningTarget(305537, nil, nil, nil, 1, 2)
-local specWarnGravityDefianceYou    = mod:NewSpecialWarningRun(305537, nil, nil, nil, 4, 2)
+local specWarnGravityDefianceYou       = mod:NewSpecialWarningRun(305537, nil, "SpecWarn305537run", nil, 4, 2)
+local specWarnGravityDefianceTargetYou = mod:NewSpecialWarning("SpecWarnGravityDefianceTargetYou", nil, nil, nil, 1, 2, nil, 305537, 305537)
+local warnGravityDefiance              = mod:NewTargetAnnounce(305537, 3, false, "warnGravityDefiance")
+local specWarnMagicCast                = mod:NewSpecialWarning("SpecWarnMagicCast", nil, nil, nil, 3, 2, nil, 305535, 305535)
 
 mod:AddSetIconOption("SetIconOnGravityTarget", 305537, true, 0, { 8 })
 
@@ -39,19 +42,24 @@ end
 function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(305535) then
 		timerMagicCD:Start()
+		timerMagicCast:Start()
+		specWarnMagicCast:Show()
+		specWarnMagicCast:Play("jump")
 	elseif args:IsSpellID(305537) then
-		print("DBM Debug: SPELL_CAST_START 305537, sourceGUID: " .. tostring(args.sourceGUID))
 		self:BossTargetScanner(args.sourceGUID, "GravityTarget", 0.01, 10)
 	end
 end
 
 function mod:GravityTarget(targetname)
-	print("DBM Debug: GravityTarget called with: " .. tostring(targetname))
 	if not targetname then return end
-	if targetname == UnitName("player") and self:IsMelee() then
-		specWarnGravityDefianceYou:Show()
+	if targetname == UnitName("player") then
+		if self:IsMelee() and not self:IsHealer() then
+			specWarnGravityDefianceYou:Show()
+		else
+			specWarnGravityDefianceTargetYou:Show()
+		end
 	else
-		specWarnGravityDefianceTarget:Show(targetname)
+		warnGravityDefiance:Show(targetname)
 	end
 	if self.Options.SetIconOnGravityTarget then
 		self.gravityTargetName = targetname
