@@ -327,3 +327,31 @@ L = DBM:GetModLocalization("Rokad")
 L:SetGeneralLocalization{
 	name = "Rokad the Ravager"
 }
+
+-- Zluker
+L = DBM:GetModLocalization("Zluker")
+
+L:SetGeneralLocalization{
+	name = "Zluker"
+}
+
+L:SetWarningLocalization{
+	SpecWarnGravityDefianceTargetYou = "Indomitability to attraction on You!",
+	SpecWarnMagicCast = "Incomparable Magic - Fly up!"
+}
+
+L:SetTimerLocalization{
+}
+
+L:SetOptionLocalization{
+	SpecWarn305537run = "Special warning for melee when $spell:305537 on you",
+	SpecWarnGravityDefianceTargetYou = "Special warning for ranged/healer when $spell:305537 on you",
+	warnGravityDefiance = "Announce targets of $spell:305537",
+	SetIconOnGravityTarget = "Set icon on $spell:305537 target",
+	SpecWarnMagicCast = "Show special warning for $spell:305535"
+}
+
+L:SetMiscLocalization{
+	YellZluker = "Вместе мы неудержимы!",
+	YellPull = "Обидишь нас - получишь в дукер! Об этом наша пьеса... Злюкер!"
+}
