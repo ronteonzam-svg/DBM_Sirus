@@ -61,7 +61,7 @@ local timerNextStomp		= mod:NewNextTimer(15, 66330, nil, nil, nil, 2, nil, CL.IN
 local timerNextImpale		= mod:NewNextTimer(8.8, 66331, nil, "Tank|Healer", nil, 5, nil, CL.TANK_ICON)
 local timerRisingAnger      = mod:NewNextTimer(21.4, 66636, nil, nil, nil, 1)
 local timerStaggeredDaze	= mod:NewBuffActiveTimer(15, 66758, nil, nil, nil, 5, nil, CL.DAMAGE_ICON)
-local timerNextCrash		= mod:NewCDTimer(51, 66683, nil, nil, nil, 2, nil, CL.MYTHIC_ICON)
+local timerNextCrash		= mod:NewCDTimer(41.1, 66683, nil, nil, nil, 2, nil, CL.MYTHIC_ICON)
 local timerSweepCD			= mod:NewCDTimer(21, 66794, nil, "Melee", nil, 3)
 local timerSlimePoolCD		= mod:NewCDTimer(12, 66883, nil, "Melee", nil, 3)
 local timerAcidicSpewCD		= mod:NewCDTimer(21, 66819, nil, "Tank", 2, 5, nil, CL.TANK_ICON)
@@ -300,7 +300,7 @@ function mod:CHAT_MSG_RAID_BOSS_EMOTE(msg, _, _, _, target)
 	if (msg:match(L.Charge) or msg:find(L.Charge)) and target then
 		target = DBM:GetUnitFullName(target)
 		warnCharge:Show(target)
-		timerNextCrash:Start(59)
+		timerNextCrash:Start(49.1)
 		if self.Options.ClearIconsOnIceHowl then
 			self:ClearIcons()
 		end

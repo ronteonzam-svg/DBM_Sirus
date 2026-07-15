@@ -23,14 +23,14 @@ local specWarnOverload		= mod:NewSpecialWarningMoveAway(52658, nil, nil, nil, 1,
 local timerOverload			= mod:NewTargetTimer(10, 52658, nil, nil, nil, 3)
 local timerBallLightningCD	= mod:NewCDTimer(10, 59800, nil, nil, nil, 2)
 
-mod:AddRangeFrameOption(10, 52658)
+mod:AddRangeFrameOption(10.8, 52658)
 mod:AddSetIconOption("SetIconOnOverloadTarget", 59795, true, false, {8})
 
 local warnedDisperse = false
 
 function mod:OnCombatStart(delay)
 	warnedDisperse = false
-	timerBallLightningCD:Start(10 - delay)
+	timerBallLightningCD:Start(10.8 - delay)
 end
 
 function mod:OnCombatEnd()
