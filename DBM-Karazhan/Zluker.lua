@@ -9,6 +9,7 @@ mod:SetUsedIcons(8)
 mod:RegisterEvents(
 	"SPELL_CAST_START 305535 305537",
 	"SPELL_CAST_SUCCESS 305537",
+	"SPELL_SUMMON 305537",
 	"SPELL_CAST_FAILED 305537",
 	"CHAT_MSG_MONSTER_YELL"
 )
@@ -46,7 +47,7 @@ function mod:SPELL_CAST_START(args)
 		specWarnMagicCast:Show()
 		specWarnMagicCast:Play("jump")
 	elseif args:IsSpellID(305537) then
-		self:BossTargetScanner(args.sourceGUID, "GravityTarget", 0.01, 10)
+		self:BossTargetScanner(args.sourceGUID, "GravityTarget", 0.05, 10, true, nil, nil, nil, true)
 	end
 end
 
@@ -73,4 +74,5 @@ function mod:SPELL_CAST_SUCCESS(args)
 		self.gravityTargetName = nil
 	end
 end
+mod.SPELL_SUMMON = mod.SPELL_CAST_SUCCESS
 mod.SPELL_CAST_FAILED = mod.SPELL_CAST_SUCCESS
