@@ -353,5 +353,8 @@ L:SetOptionLocalization{
 
 L:SetMiscLocalization{
 	YellZluker = "Вместе мы неудержимы!",
-	YellPull = "Обидишь нас - получишь в дукер! Об этом наша пьеса... Злюкер!"
+	YellPull = "Обидишь нас - получишь в дукер! Об этом наша пьеса... Злюкер!",
+	YellBarnes = "добро пожаловать",
+	YellMonkey = "хлеборезку",
+	YellGalindra = "Эльфира"
 }

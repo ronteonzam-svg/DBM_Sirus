@@ -1,14 +1,14 @@
 local mod = DBM:NewMod("Zluker", "DBM-Karazhan")
 local L   = mod:GetLocalizedStrings()
 
-mod:SetRevision("20260713234500")
+mod:SetRevision("20260728030400")
 mod:SetCreatureID(10055, 100552, 100555)
 mod:RegisterCombat("yell", L.YellZluker)
 mod:SetUsedIcons(8)
 
 mod:RegisterEvents(
 	"SPELL_CAST_START 305535 305537",
-	"SPELL_CAST_SUCCESS 305537",
+	"SPELL_CAST_SUCCESS 305537 305540",
 	"SPELL_SUMMON 305537",
 	"SPELL_CAST_FAILED 305537",
 	"CHAT_MSG_MONSTER_YELL"
@@ -16,28 +16,42 @@ mod:RegisterEvents(
 
 local timerMagicCD     = mod:NewCDTimer(46, 305535)
 local timerMagicCast   = mod:NewCastTimer(5, 305535, nil, nil, nil, 2)
---local timerCombatStart = mod:NewCombatTimer(42)
+local timerSummonCD    = mod:NewCDTimer(73, 305540)
+local timerCombatStart = mod:NewCombatTimer(80)
 
 -- Prominent special warnings in the center of the screen
 local specWarnGravityDefianceYou       = mod:NewSpecialWarningRun(305537, nil, "SpecWarn305537run", nil, 4, 2)
 local specWarnGravityDefianceTargetYou = mod:NewSpecialWarning("SpecWarnGravityDefianceTargetYou", nil, nil, nil, 1, 2, nil, 305537, 305537)
-local warnGravityDefiance              = mod:NewTargetAnnounce(305537, 3, false, "warnGravityDefiance")
+local warnGravityDefiance              = mod:NewTargetAnnounce(305537, 3, nil, true, "warnGravityDefiance")
 local specWarnMagicCast                = mod:NewSpecialWarning("SpecWarnMagicCast", nil, nil, nil, 3, 2, nil, 305535, 305535)
 
 mod:AddSetIconOption("SetIconOnGravityTarget", 305537, true, 0, { 8 })
 
---Таймер до запуска. Непонятно иногда 79 секунд, иногда около 30-40
---[[
 function mod:CHAT_MSG_MONSTER_YELL(msg)
-	if L.YellPull and (msg == L.YellPull or msg:find(L.YellPull)) then
-		timerCombatStart:Start()
+	if L.YellBarnes and msg:find(L.YellBarnes, 1, true) then
+		self.isLongRP = false
+		self.timerStarted = false
+	elseif L.YellMonkey and msg:find(L.YellMonkey, 1, true) then
+		if not self.timerStarted then
+			self.isLongRP = true
+			self.timerStarted = true
+			timerCombatStart:Start(73)
+		end
+	elseif L.YellGalindra and msg:find(L.YellGalindra, 1, true) then
+		if not self.timerStarted and not self.isLongRP then
+			self.timerStarted = true
+			timerCombatStart:Start(17)
+		end
 	end
 end
---]]
 
 function mod:OnCombatStart()
-	timerMagicCD:Start(66)
+	timerCombatStart:Stop()
+	timerMagicCD:Start(46)
+	timerSummonCD:Start(72)
 	self.gravityTargetName = nil
+	self.isLongRP = nil
+	self.timerStarted = nil
 end
 
 function mod:SPELL_CAST_START(args)
@@ -47,8 +61,17 @@ function mod:SPELL_CAST_START(args)
 		specWarnMagicCast:Show()
 		specWarnMagicCast:Play("jump")
 	elseif args:IsSpellID(305537) then
-		self:BossTargetScanner(args.sourceGUID, "GravityTarget", 0.05, 10, true, nil, nil, nil, true)
+		self:ScheduleMethod(0.05, "CheckGravityTarget", args.sourceGUID)
 	end
+end
+
+function mod:CheckGravityTarget(sourceGUID)
+	local targetname, targetuid = self:GetBossTarget(sourceGUID)
+	if not targetname then return end
+	if targetuid and self:IsTanking(targetuid) then
+		return
+	end
+	self:GravityTarget(targetname)
 end
 
 function mod:GravityTarget(targetname)
@@ -72,6 +95,8 @@ function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(305537) and self.gravityTargetName then
 		self:RemoveIcon(self.gravityTargetName)
 		self.gravityTargetName = nil
+	elseif args:IsSpellID(305540) then
+		timerSummonCD:Start(73)
 	end
 end
 mod.SPELL_SUMMON = mod.SPELL_CAST_SUCCESS
