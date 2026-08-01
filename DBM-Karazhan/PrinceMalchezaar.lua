@@ -26,7 +26,7 @@ local timerNova          = mod:NewCDTimer(30, 30852) -- Кольцо тьмы
 -- ===                      ГЕРОИЧЕСКИЙ РЕЖИМ (10 ХМ)                      ===
 -- ============================================================================
 local warningRingOfDarkness    = mod:NewCastAnnounce(305425, 3)                         -- Кольцо мрака
-local warningDevouringFlame     = mod:NewTargetAnnounce(305433, 4)                       -- Пожирающее Пламя
+local warnDevouringFlame        = mod:NewTargetNoFilterAnnounce(305433, 4)               -- Пожирающее Пламя
 local specWarnDevouringFlameYou = mod:NewSpecialWarningYou(305433, nil, nil, nil, 1, 2) -- Пожирающее Пламя на тебе
 local yellDevouringFlame        = mod:NewYell(305433)                                    -- Крик Пожирающее Пламя
 
@@ -34,7 +34,6 @@ local timerRingOfDarkness      = mod:NewCDTimer(12, 305425)                     
 local timerDevouringFlame       = mod:NewCDTimer(42, 305433)                             -- Пожирающее Пламя
 
 mod:AddSetIconOption("SetIconOnDevouringFlame", 305433, true, 0, {8, 7})
-mod:AddYellOption("YellDevouringFlame", 305433)
 
 local devouringFlameTargets = {}
 
@@ -50,6 +49,7 @@ local warnNextPhaseSoon  = mod:NewAnnounce("WarnNextPhaseSoon", 1)
 function mod:OnCombatStart(delay)
 	self:SetStage(1)
 	table.wipe(devouringFlameTargets)
+	self:UnscheduleMethod("SetDevouringFlameIcons")
 	if self:IsDifficulty("heroic10") then
 		-- --- 10 ХМ ---
 		DBM:FireCustomEvent("DBM_EncounterStart", 15690, "Prince Malchezaar")
@@ -63,11 +63,19 @@ function mod:OnCombatStart(delay)
 end
 
 function mod:OnCombatEnd(wipe)
+	table.wipe(devouringFlameTargets)
+	self:UnscheduleMethod("SetDevouringFlameIcons")
 	DBM:FireCustomEvent("DBM_EncounterEnd", 15690, "Prince Malchezaar", wipe)
 end
 
-function mod:WarnDevouringFlameTargets()
-	warnDevouringFlame:Show(table.concat(devouringFlameTargets, ", "))
+function mod:SetDevouringFlameIcons()
+	if self.Options.SetIconOnDevouringFlame then
+		local icon = 8
+		for _, name in ipairs(devouringFlameTargets) do
+			self:SetIcon(name, icon, 3)
+			icon = icon - 1
+		end
+	end
 	local stage = self:GetStage()
 	if stage == 2 then
 		timerDevouringFlame:Start(42)
@@ -81,55 +89,16 @@ function mod:WarnDevouringFlameTargets()
 	table.wipe(devouringFlameTargets)
 end
 
-function mod:CHAT_MSG_MONSTER_YELL(msg)
-	-- Крик босса отслеживается только в 10 ОБ
-	if self:IsDifficulty("normal10") then
-		if self:GetStage() == 1 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
-			warningInfernal:Show()
-			timerInfernal:Start()
-		elseif self:GetStage() == 2 and msg == L.DBM_PRINCE_YELL_P3 then
-			self:SetStage(3)
-			warnNextPhaseSoon:Show("3")
-			warningInfernal:Show()
-			timerInfernal:Start(15)
-			timerNova:Start()
-		elseif self:GetStage() == 1 and msg == L.DBM_PRINCE_YELL_P2 then
-			self:SetStage(2)
-			warnNextPhaseSoon:Show("2")
-		elseif self:GetStage() == 3 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
-			timerInfernal:Start(17)
-		end
-	end
-end
-
-function mod:SPELL_CAST_START(args)
-	if args:IsSpellID(30852) then
-		if self:IsDifficulty("heroic10") then
-			timerNova:Start(13)
-		else
-			timerNova:Start()
-		end
-	elseif args:IsSpellID(305425) then
-		warningRingOfDarkness:Show()
-		timerRingOfDarkness:Start(12)
-	end
-end
-
 function mod:SPELL_AURA_APPLIED(args)
 	if args:IsSpellID(305433) then
 		table.insert(devouringFlameTargets, args.destName)
+		warnDevouringFlame:CombinedShow(0.1, args.destName)
 		if args:IsPlayer() then
 			specWarnDevouringFlameYou:Show()
-			if self.Options.YellDevouringFlame then
-				yellDevouringFlame:Yell()
-			end
+			yellDevouringFlame:Yell()
 		end
-		if self.Options.SetIconOnDevouringFlame then
-			local icon = (#devouringFlameTargets == 1) and 8 or 7
-			self:SetIcon(args.destName, icon, 3)
-		end
-		self:UnscheduleMethod("WarnDevouringFlameTargets")
-		self:ScheduleMethod(0.1, "WarnDevouringFlameTargets")
+		self:UnscheduleMethod("SetDevouringFlameIcons")
+		self:ScheduleMethod(0.1, "SetDevouringFlameIcons")
 	end
 end
 
