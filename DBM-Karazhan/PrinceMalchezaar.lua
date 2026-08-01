@@ -32,6 +32,7 @@ local yellDevouringFlame        = mod:NewYell(305433)                           
 
 local timerRingOfDarkness      = mod:NewCDTimer(12, 305425)                             -- Кольцо мрака
 local timerDevouringFlame       = mod:NewCDTimer(42, 305433)                             -- Пожирающее Пламя
+local berserkTimer              = mod:NewBerserkTimer(720)                               -- Берсерк (12 мин)
 
 mod:AddSetIconOption("SetIconOnDevouringFlame", 305433, true, 0, {8, 7})
 
@@ -50,13 +51,14 @@ function mod:OnCombatStart(delay)
 	self:SetStage(1)
 	table.wipe(devouringFlameTargets)
 	self:UnscheduleMethod("SetDevouringFlameIcons")
+	DBM:FireCustomEvent("DBM_EncounterStart", 15690, "Prince Malchezaar")
+
 	if self:IsDifficulty("heroic10") then
 		-- --- 10 ХМ ---
-		DBM:FireCustomEvent("DBM_EncounterStart", 15690, "Prince Malchezaar")
 		timerRingOfDarkness:Start(12 - delay)
+		berserkTimer:Start(-delay)
 	else
 		-- --- 10 ОБ ---
-		DBM:FireCustomEvent("DBM_EncounterStart", 15690, "Prince Malchezaar")
 		timerInfernal:Start()
 		timerNova:Start(35)
 	end
