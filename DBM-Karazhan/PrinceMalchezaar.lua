@@ -11,6 +11,7 @@ mod:RegisterEvents(
 )
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 30852 305425",
+	"SPELL_CAST_SUCCESS 305435",
 	"SPELL_AURA_APPLIED 305433",
 	"UNIT_HEALTH"
 )
@@ -29,9 +30,11 @@ local warningRingOfDarkness    = mod:NewCastAnnounce(305425, 3)                 
 local warnDevouringFlame        = mod:NewTargetNoFilterAnnounce(305433, 4)               -- Пожирающее Пламя
 local specWarnDevouringFlameYou = mod:NewSpecialWarningYou(305433, nil, nil, nil, 1, 2) -- Пожирающее Пламя на тебе
 local yellDevouringFlame        = mod:NewYell(305433)                                    -- Крик Пожирающее Пламя
+local warningCurseOfExhaustion  = mod:NewSpellAnnounce(305435, 2, nil, false)                 -- Проклятие истощения (выключено по умолчанию)
 
 local timerRingOfDarkness      = mod:NewCDTimer(12, 305425)                             -- Кольцо мрака
 local timerDevouringFlame       = mod:NewCDTimer(42, 305433)                             -- Пожирающее Пламя
+local timerCurseOfExhaustion    = mod:NewCDTimer(20, 305435)                             -- Проклятие истощения
 local berserkTimer              = mod:NewBerserkTimer(720)                               -- Берсерк (12 мин)
 
 mod:AddSetIconOption("SetIconOnDevouringFlame", 305433, true, 0, {8, 7})
@@ -56,6 +59,7 @@ function mod:OnCombatStart(delay)
 	if self:IsDifficulty("heroic10") then
 		-- --- 10 ХМ ---
 		timerRingOfDarkness:Start(12 - delay)
+		timerCurseOfExhaustion:Start(20 - delay)
 		berserkTimer:Start(-delay)
 	else
 		-- --- 10 ОБ ---
@@ -91,6 +95,52 @@ function mod:SetDevouringFlameIcons()
 	table.wipe(devouringFlameTargets)
 end
 
+function mod:CHAT_MSG_MONSTER_YELL(msg)
+	-- Крик босса отслеживается только в 10 ОБ
+	if self:IsDifficulty("normal10") then
+		if self:GetStage() == 1 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
+			warningInfernal:Show()
+			timerInfernal:Start()
+		elseif self:GetStage() == 2 and msg == L.DBM_PRINCE_YELL_P3 then
+			self:SetStage(3)
+			warnNextPhaseSoon:Show("3")
+			warningInfernal:Show()
+			timerInfernal:Start(15)
+			timerNova:Start()
+		elseif self:GetStage() == 1 and msg == L.DBM_PRINCE_YELL_P2 then
+			self:SetStage(2)
+			warnNextPhaseSoon:Show("2")
+		elseif self:GetStage() == 3 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
+			timerInfernal:Start(17)
+		end
+	end
+end
+
+function mod:SPELL_CAST_START(args)
+	if args:IsSpellID(30852) then
+		if self:IsDifficulty("heroic10") then
+			timerNova:Start(13)
+		else
+			timerNova:Start()
+		end
+	elseif args:IsSpellID(305425) then
+		warningRingOfDarkness:Show()
+		timerRingOfDarkness:Start(12)
+	end
+end
+
+function mod:SPELL_CAST_SUCCESS(args)
+	if args:IsSpellID(305435) then
+		warningCurseOfExhaustion:Show()
+		local stage = self:GetStage()
+		if stage == 1 or stage == 4 then
+			timerCurseOfExhaustion:Start(20)
+		elseif stage == 2 then
+			timerCurseOfExhaustion:Start(30)
+		end
+	end
+end
+
 function mod:SPELL_AURA_APPLIED(args)
 	if args:IsSpellID(305433) then
 		table.insert(devouringFlameTargets, args.destName)
@@ -117,6 +167,8 @@ function mod:UNIT_HEALTH(uId)
 						warnNextPhaseSoon:Show("2")
 						timerRingOfDarkness:Start(12)
 						timerDevouringFlame:Start(42)
+						timerCurseOfExhaustion:Cancel()
+						timerCurseOfExhaustion:Start(30)
 					elseif stage == 2 and hp <= 40 then
 						self:SetStage(3)
 						warnNextPhaseSoon:Show("3")
@@ -124,15 +176,18 @@ function mod:UNIT_HEALTH(uId)
 						timerNova:Start(13)
 						timerDevouringFlame:Cancel()
 						timerDevouringFlame:Start(10)
+						timerCurseOfExhaustion:Cancel()
 					elseif stage == 3 and hp <= 30 then
 						self:SetStage(4)
 						warnNextPhaseSoon:Show("4")
 						timerNova:Cancel()
 						timerDevouringFlame:Cancel()
+						timerCurseOfExhaustion:Start(20)
 					elseif stage == 4 and hp <= 20 then
 						self:SetStage(5)
 						warnNextPhaseSoon:Show("5")
 						timerDevouringFlame:Start(28)
+						timerCurseOfExhaustion:Cancel()
 					elseif stage == 5 and hp <= 10 then
 						self:SetStage(6)
 						warnNextPhaseSoon:Show("6")
