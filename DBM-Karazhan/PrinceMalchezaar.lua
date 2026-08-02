@@ -22,7 +22,7 @@ mod:RegisterEventsInCombat(
 -- ============================================================================
 local warningInfernal    = mod:NewSpellAnnounce(37277, 2)
 local timerInfernal      = mod:NewCDTimer(45, 37277) -- Метеоры / Инферналы
-local timerNova          = mod:NewCDTimer(30, 30852) -- Кольцо тьмы
+local timerNova          = mod:NewNextTimer(30, 30852) -- Кольцо тьмы
 
 -- ============================================================================
 -- ===                      ГЕРОИЧЕСКИЙ РЕЖИМ (10 ХМ)                      ===
@@ -40,15 +40,15 @@ local specWarnArcaneCleaveStack       = mod:NewSpecialWarningStack(305428, nil, 
 local specWarnArcaneCleaveTaunt       = mod:NewSpecialWarningTaunt(305428, nil, nil, nil, 1, 2)    -- Затаунти с танка
 
 local warnIceSpikeTarget              = mod:NewTargetAnnounce(305443, 3)                       -- Ледяной шип
-local timerIceSpikeCD                 = mod:NewCDTimer(10, 305443)                             -- Ледяной шип
+local timerIceSpikeCD                 = mod:NewNextTimer(10, 305443)                             -- Ледяной шип
 
 local warnCallOfTheDeadTarget         = mod:NewTargetAnnounce(305447, 4)                       -- Зов мертвых
-local timerCallOfTheDeadCD            = mod:NewCDTimer(10, 305447)                             -- Зов мертвых
+local timerCallOfTheDeadCD            = mod:NewNextTimer(10, 305447)                             -- Зов мертвых
 
-local timerRingOfDarkness            = mod:NewCDTimer(12, 305425)                             -- Кольцо мрака
-local timerDevouringFlame             = mod:NewCDTimer(42, 305433)                             -- Пожирающее Пламя
-local timerCurseOfExhaustion          = mod:NewCDTimer(20, 305435)                             -- Проклятие истощения
-local timerVengefulCorruption         = mod:NewCDTimer(20, 305429)                             -- Мстительная порча
+local timerRingOfDarkness            = mod:NewNextTimer(12, 305425)                             -- Кольцо мрака
+local timerDevouringFlame             = mod:NewNextTimer(42, 305433)                             -- Пожирающее Пламя
+local timerCurseOfExhaustion          = mod:NewNextTimer(20, 305435)                             -- Проклятие истощения
+local timerVengefulCorruption         = mod:NewNextTimer(20, 305429)                             -- Мстительная порча
 local berserkTimer                    = mod:NewBerserkTimer(900)                               -- Берсерк (15 мин)
 
 mod:AddSetIconOption("SetIconOnDevouringFlame", 305433, true, 0, {8, 7})
@@ -94,12 +94,11 @@ function mod:OnCombatStart(delay)
 	self:UnscheduleMethod("RestartVengefulCorruptionTimer")
 	DBM:FireCustomEvent("DBM_EncounterStart", 15690, "Prince Malchezaar")
 
-	if self.Options.RangeFrame then
-		DBM.RangeCheck:Show(10)
-	end
-
 	if self:IsDifficulty("heroic10") then
 		-- --- 10 ХМ ---
+		if self.Options.RangeFrame then
+			DBM.RangeCheck:Show(10)
+		end
 		timerRingOfDarkness:Start(12 - delay)
 		timerCurseOfExhaustion:Start(20 - delay)
 		timerVengefulCorruption:Start(20 - delay)
