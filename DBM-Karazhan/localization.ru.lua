@@ -253,17 +253,24 @@ L:SetGeneralLocalization{
 }
 
 L:SetWarningLocalization{
-	WarnNextPhaseSoon = "Фаза %s"
+	WarnNextPhaseSoon = "Фаза %s",
+	WarnPhase         = "Фаза %s"
 }
 
 L:SetTimerLocalization{
 }
 
 L:SetOptionLocalization{
-	WarnNextPhaseSoon = "Предупреждать о переходе на следующую фазу"
+	WarnNextPhaseSoon = "Предупреждать о переходе на следующую фазу",
+	WarnPhase         = "Показывать предупреждения смены фаз"
 }
 
 L:SetMiscLocalization{
+	Phase2                  = "2: Пламя и Тьма",
+	Phase3                  = "3: Огненные просторы",
+	Phase4                  = "4: Ледяная пустошь",
+	Phase5                  = "5: Чёрный лес",
+	Phase6                  = "6: Пламя и Тьма",
 	DBM_PRINCE_YELL_PULL    = "Безумие привело вас сюда, я стану вашей погибелью.",
     DBM_PRINCE_YELL_P2      = "Глупцы! Время – это огонь, сжигающий вас!",
     DBM_PRINCE_YELL_P3      = "Как вы осмелились бросить вызов столь колоссальной мощи?",
