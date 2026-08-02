@@ -20,53 +20,59 @@ mod:RegisterEventsInCombat(
 -- ============================================================================
 -- ===                        ОБЫЧНЫЙ РЕЖИМ (10 ОБ)                        ===
 -- ============================================================================
-local warningInfernal    = mod:NewSpellAnnounce(37277, 2)
-local timerInfernal      = mod:NewCDTimer(45, 37277) -- Метеоры / Инферналы
-local timerNova          = mod:NewNextTimer(30, 30852) -- Кольцо тьмы
+local warningInfernal                = mod:NewSpellAnnounce(37277, 2)
+local timerInfernal                  = mod:NewCDTimer(45, 37277)                              -- Метеоры / Инферналы
+local timerNova                      = mod:NewNextTimer(30, 30852)                            -- Кольцо тьмы
 
 -- ============================================================================
 -- ===                      ГЕРОИЧЕСКИЙ РЕЖИМ (10 ХМ)                      ===
 -- ============================================================================
-local warningRingOfDarkness          = mod:NewCastAnnounce(305425, 3)                         -- Кольцо мрака
-local warnDevouringFlame              = mod:NewTargetNoFilterAnnounce(305433, 4)               -- Пожирающее Пламя
+-- --- Заклинания и Таймеры ---
+local warningRingOfDarkness          = mod:NewCastAnnounce(305425, 3)                         -- Кольцо мрака (305425)
+local warnDevouringFlame              = mod:NewTargetNoFilterAnnounce(305433, 4)               -- Пожирающее Пламя (305433)
 local specWarnDevouringFlameYou       = mod:NewSpecialWarningYou(305433, nil, nil, nil, 1, 2) -- Пожирающее Пламя на тебе
 local yellDevouringFlame              = mod:NewYell(305433)                                    -- Крик Пожирающее Пламя
-local warningCurseOfExhaustion        = mod:NewSpellAnnounce(305435, 2, nil, false)                 -- Проклятие истощения (выключено по умолчанию)
-local warnVengefulCorruption          = mod:NewTargetAnnounce(305429, 3, nil, false)        -- Мстительная порча (выключено по умолчанию)
+local warningCurseOfExhaustion        = mod:NewSpellAnnounce(305435, 2, nil, false)                 -- Проклятие истощения (305435)
+local warnVengefulCorruption          = mod:NewTargetAnnounce(305429, 3, nil, false)        -- Мстительная порча (305429)
 local specWarnVengefulCorruptionYou   = mod:NewSpecialWarningYou(305429, nil, nil, nil, 1, 2) -- Мстительная порча на тебе
 
-local warnArcaneCleave                = mod:NewStackAnnounce(305428, 2, nil, false)            -- Чародейское рассечение (выключено по умолчанию)
-local specWarnArcaneCleaveStack       = mod:NewSpecialWarningStack(305428, nil, 7, nil, nil, 1, 2) -- Чародейское рассечение (7+ стаков на себе)
-local specWarnArcaneCleaveTaunt       = mod:NewSpecialWarningTaunt(305428, nil, nil, nil, 1, 2)    -- Затаунти с танка
+-- --- Танковская механика (10 ХМ) ---
+local warnArcaneCleave                = mod:NewStackAnnounce(305428, 2, nil, false)            -- Чародейское рассечение (305428)
+local specWarnArcaneCleaveStack       = mod:NewSpecialWarningStack(305428, nil, 7, nil, nil, 1, 2) -- 7+ стаков рассечения на себе
+local specWarnArcaneCleaveTaunt       = mod:NewSpecialWarningTaunt(305428, nil, nil, nil, 1, 2)    -- Предупреждение о смене танков (таунт)
 
-local warnIceSpikeTarget              = mod:NewTargetAnnounce(305443, 3)                       -- Ледяной шип
-local timerIceSpikeCD                 = mod:NewNextTimer(10, 305443)                             -- Ледяной шип
+-- --- Фаза 4 и 5 ---
+local warnIceSpikeTarget              = mod:NewTargetAnnounce(305443, 3)                       -- Ледяной шип (305443)
+local timerIceSpikeCD                 = mod:NewNextTimer(10, 305443)                             -- Перезарядка Ледяного шипа (10с)
 
-local warnCallOfTheDeadTarget         = mod:NewTargetAnnounce(305447, 4)                       -- Зов мертвых
-local timerCallOfTheDeadCD            = mod:NewNextTimer(10, 305447)                             -- Зов мертвых
+local warnCallOfTheDeadTarget         = mod:NewTargetAnnounce(305447, 4)                       -- Зов мертвых (305447)
+local timerCallOfTheDeadCD            = mod:NewNextTimer(10, 305447)                             -- Перезарядка Зова мертвых (10с)
 
-local timerRingOfDarkness            = mod:NewNextTimer(12, 305425)                             -- Кольцо мрака
+-- --- Основные таймеры (10 ХМ) ---
+local timerRingOfDarkness            = mod:NewNextTimer(12, 305425)                             -- Кольцо мрака (12с)
 local timerDevouringFlame             = mod:NewNextTimer(42, 305433)                             -- Пожирающее Пламя
 local timerCurseOfExhaustion          = mod:NewNextTimer(20, 305435)                             -- Проклятие истощения
 local timerVengefulCorruption         = mod:NewNextTimer(20, 305429)                             -- Мстительная порча
 local berserkTimer                    = mod:NewBerserkTimer(900)                               -- Берсерк (15 мин)
 
+-- --- Опции меток и дистанции ---
 mod:AddSetIconOption("SetIconOnDevouringFlame", 305433, true, 0, {8, 7})
 mod:AddSetIconOption("SetIconOnIceSpike", 305443, true, 0, {1})
 mod:AddSetIconOption("SetIconOnCallOfTheDead", 305447, true, 0, {1})
 mod:AddRangeFrameOption(10)
 
+-- ============================================================================
+-- ===                             ОБЩИЕ АНОНСЫ                            ===
+-- ============================================================================
+local warnPhase                      = mod:NewAnnounce("WarnPhase", 2)                        -- Анонс смены фаз
+
 local devouringFlameTargets = {}
 
 -- ============================================================================
--- ===                            ОБЩИЕ АНОНСЫ                             ===
--- ============================================================================
-local warnPhase                      = mod:NewAnnounce("WarnPhase", 2)
-
--- ============================================================================
--- ===                             ФУНКЦИИ МОДУЛЯ                           ===
+-- ===                          ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ                      ===
 -- ============================================================================
 
+-- Очистка метки цели (для Ледяного шипа / Зова мертвых)
 function mod:ClearTargetIcon()
 	if self.targetIconName then
 		self:RemoveIcon(self.targetIconName)
@@ -75,6 +81,7 @@ function mod:ClearTargetIcon()
 	self:UnscheduleMethod("HandleTargetSpell")
 end
 
+-- Универсальный обработчик поиска цели и вешания метки Звезда (1)
 function mod:HandleTargetSpell(announce, duration, optionName)
 	local targetname = self:GetBossTarget(15690) or UnitName("boss1target")
 	if targetname then
@@ -86,6 +93,47 @@ function mod:HandleTargetSpell(announce, duration, optionName)
 	end
 end
 
+-- Установка меток Череп (8) и Крест (7) на Пожирающее пламя и старт следующего таймера
+function mod:SetDevouringFlameIcons()
+	if self.Options.SetIconOnDevouringFlame then
+		local icon = 8
+		for _, name in ipairs(devouringFlameTargets) do
+			self:SetIcon(name, icon, 3)
+			icon = icon - 1
+		end
+	end
+	local stage = self:GetStage()
+	if stage == 2 then
+		timerDevouringFlame:Start(42)
+	elseif stage == 3 then
+		timerDevouringFlame:Start(10)
+	elseif stage == 5 then
+		timerDevouringFlame:Start(28)
+	elseif stage == 6 then
+		timerDevouringFlame:Start(42)
+	end
+	table.wipe(devouringFlameTargets)
+end
+
+-- Перезапуск таймера Мстительной порчи в зависимости от текущей фазы
+function mod:RestartVengefulCorruptionTimer()
+	local stage = self:GetStage()
+	if stage == 1 then
+		timerVengefulCorruption:Start(20)
+	elseif stage == 2 then
+		timerVengefulCorruption:Start(15)
+	elseif stage == 4 then
+		timerVengefulCorruption:Start(9)
+	elseif stage == 6 then
+		timerVengefulCorruption:Start(10)
+	end
+end
+
+-- ============================================================================
+-- ===                         ОБРАБОТКА СОБЫТИЙ БОЯ                        ===
+-- ============================================================================
+
+-- Старт боя
 function mod:OnCombatStart(delay)
 	self:SetStage(1)
 	table.wipe(devouringFlameTargets)
@@ -110,6 +158,7 @@ function mod:OnCombatStart(delay)
 	end
 end
 
+-- Конец боя / Вайп
 function mod:OnCombatEnd(wipe)
 	table.wipe(devouringFlameTargets)
 	self:ClearTargetIcon()
@@ -121,42 +170,8 @@ function mod:OnCombatEnd(wipe)
 	DBM:FireCustomEvent("DBM_EncounterEnd", 15690, "Prince Malchezaar", wipe)
 end
 
-function mod:SetDevouringFlameIcons()
-	if self.Options.SetIconOnDevouringFlame then
-		local icon = 8
-		for _, name in ipairs(devouringFlameTargets) do
-			self:SetIcon(name, icon, 3)
-			icon = icon - 1
-		end
-	end
-	local stage = self:GetStage()
-	if stage == 2 then
-		timerDevouringFlame:Start(42)
-	elseif stage == 3 then
-		timerDevouringFlame:Start(10)
-	elseif stage == 5 then
-		timerDevouringFlame:Start(28)
-	elseif stage == 6 then
-		timerDevouringFlame:Start(42)
-	end
-	table.wipe(devouringFlameTargets)
-end
-
-function mod:RestartVengefulCorruptionTimer()
-	local stage = self:GetStage()
-	if stage == 1 then
-		timerVengefulCorruption:Start(20)
-	elseif stage == 2 then
-		timerVengefulCorruption:Start(15)
-	elseif stage == 4 then
-		timerVengefulCorruption:Start(9)
-	elseif stage == 6 then
-		timerVengefulCorruption:Start(10)
-	end
-end
-
+-- Крики босса (только для 10 ОБ)
 function mod:CHAT_MSG_MONSTER_YELL(msg)
-	-- Крик босса отслеживается только в 10 ОБ
 	if self:IsDifficulty("normal10") then
 		if self:GetStage() == 1 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
 			warningInfernal:Show()
@@ -176,6 +191,7 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 	end
 end
 
+-- Начало применения заклинаний
 function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(30852) then
 		if self:IsDifficulty("heroic10") then
@@ -187,16 +203,19 @@ function mod:SPELL_CAST_START(args)
 		warningRingOfDarkness:Show()
 		timerRingOfDarkness:Start(12)
 	elseif args:IsSpellID(305443) then
+		-- Ледяной шип (Фаза 4): старт 10с CD, поиск цели через 0.1с и метка Звезда на 3с
 		timerIceSpikeCD:Start(10)
 		self:UnscheduleMethod("HandleTargetSpell")
 		self:ScheduleMethod(0.1, "HandleTargetSpell", warnIceSpikeTarget, 3, "SetIconOnIceSpike")
 	elseif args:IsSpellID(305447) then
+		-- Зов мертвых (Фаза 5): старт 10с CD, поиск цели через 0.1с и метка Звезда на 4с
 		timerCallOfTheDeadCD:Start(10)
 		self:UnscheduleMethod("HandleTargetSpell")
 		self:ScheduleMethod(0.1, "HandleTargetSpell", warnCallOfTheDeadTarget, 4, "SetIconOnCallOfTheDead")
 	end
 end
 
+-- Успешное применение заклинаний
 function mod:SPELL_CAST_SUCCESS(args)
 	if args:IsSpellID(305435) then
 		warningCurseOfExhaustion:Show()
@@ -209,8 +228,10 @@ function mod:SPELL_CAST_SUCCESS(args)
 	end
 end
 
+-- Наложение эффектов / дебаффов
 function mod:SPELL_AURA_APPLIED(args)
 	if args:IsSpellID(305433) then
+		-- Пожирающее Пламя (305433)
 		table.insert(devouringFlameTargets, args.destName)
 		warnDevouringFlame:CombinedShow(0.1, args.destName)
 		if args:IsPlayer() then
@@ -220,6 +241,7 @@ function mod:SPELL_AURA_APPLIED(args)
 		self:UnscheduleMethod("SetDevouringFlameIcons")
 		self:ScheduleMethod(0.1, "SetDevouringFlameIcons")
 	elseif args:IsSpellID(305429) then
+		-- Мстительная порча (305429)
 		warnVengefulCorruption:CombinedShow(0.1, args.destName)
 		if args:IsPlayer() then
 			specWarnVengefulCorruptionYou:Show()
@@ -227,6 +249,7 @@ function mod:SPELL_AURA_APPLIED(args)
 		self:UnscheduleMethod("RestartVengefulCorruptionTimer")
 		self:ScheduleMethod(0.1, "RestartVengefulCorruptionTimer")
 	elseif args:IsSpellID(305428) then
+		-- Чародейское рассечение (305428) — Стаки на танках
 		local amount = args.amount or 1
 		if amount >= 7 then
 			if args:IsPlayer() then
@@ -250,6 +273,7 @@ end
 
 mod.SPELL_AURA_APPLIED_DOSE = mod.SPELL_AURA_APPLIED
 
+-- Отслеживание смены фаз по % ХП босса
 function mod:UNIT_HEALTH(uId)
 	if self:GetUnitCreatureId(uId) == 15690 then
 		local stage = self:GetStage()
