@@ -253,7 +253,8 @@ L:SetGeneralLocalization{
 }
 
 L:SetWarningLocalization{
-	WarnNextPhaseSoon = "Фаза %s"
+	WarnNextPhaseSoon = "Фаза %s",
+	WarnPhase         = "Фаза %s"
 }
 
 L:SetTimerLocalization{
@@ -261,20 +262,20 @@ L:SetTimerLocalization{
 
 L:SetOptionLocalization{
 	WarnNextPhaseSoon = "Предупреждать о переходе на следующую фазу",
-	AnnouncePorch	  = "Объявлять игроков, на кого установлен $spell:305429, в рейд чат"
+	WarnPhase         = "Показывать предупреждения смены фаз"
 }
 
 L:SetMiscLocalization{
+	Phase2                  = "2: Пламя и Тьма",
+	Phase3                  = "3: Огненные просторы",
+	Phase4                  = "4: Ледяная пустошь",
+	Phase5                  = "5: Чёрный лес",
+	Phase6                  = "6: Пламя и Тьма",
 	DBM_PRINCE_YELL_PULL    = "Безумие привело вас сюда, я стану вашей погибелью.",
     DBM_PRINCE_YELL_P2      = "Глупцы! Время – это огонь, сжигающий вас!",
     DBM_PRINCE_YELL_P3      = "Как вы осмелились бросить вызов столь колоссальной мощи?",
     DBM_PRINCE_YELL_INF1    = "Мне открыты все реальности, все измерения!",
-    DBM_PRINCE_YELL_INF2    = "Вы противостоите не только Мальчезаару, но и всем подвластным мне легионам!",
-	FlameWorld              = "Огненные просторы",
-	IceWorld                = "Ледяная пустошь",
-	BlackForest             = "Черный лес",
-	Porch					= "Мстительная порча {rt%d} установлена на: %s",
-	LastPhase               = "Финал"
+    DBM_PRINCE_YELL_INF2    = "Вы противостоите не только Мальчезаару, но и всем подвластным мне легионам!"
 }
 
 

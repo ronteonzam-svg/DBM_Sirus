@@ -221,15 +221,24 @@ L:SetGeneralLocalization{
 }
 
 L:SetWarningLocalization{
+	WarnNextPhaseSoon = "Phase %s",
+	WarnPhase         = "Phase %s"
 }
 
 L:SetTimerLocalization{
 }
 
 L:SetOptionLocalization{
+	WarnNextPhaseSoon = "Show warning for next phase",
+	WarnPhase         = "Show warning for phase changes"
 }
 
 L:SetMiscLocalization{
+	Phase2                  = "2: Flame and Darkness",
+	Phase3                  = "3: Firelands",
+	Phase4                  = "4: Frozen Wasteland",
+	Phase5                  = "5: Black Forest",
+	Phase6                  = "6: Flame and Darkness",
 	DBM_PRINCE_YELL_PULL	= "Madness has brought you here to me. I shall be your undoing!",
 	DBM_PRINCE_YELL_P2		= "Simple fools! Time is the fire in which you'll burn!",
 	DBM_PRINCE_YELL_P3		= "How can you hope to stand against such overwhelming power?",

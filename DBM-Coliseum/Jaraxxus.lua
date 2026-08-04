@@ -83,6 +83,8 @@ function mod:OnCombatStart(delay)
 	self.vb.fleshCount = 0
 	self.vb.netherPowerStacks = 0
 	self.vb.netherPowerPlayVoice = false
+	self:Unschedule(netherPowerFrameHide)
+	if netherPowerFrame then netherPowerFrame:Hide() end
 	timerPortalCD:Start(20 - delay)
 	warnPortalSoon:Schedule(15 - delay)
 	self:Schedule(20 - delay, PortalLoop, self)
@@ -103,6 +105,7 @@ function mod:OnCombatEnd(wipe)
 	self:Unschedule(PortalLoop)
 	self:Unschedule(warnNetherPower)
 	self:Unschedule(netherPowerFrameHide)
+	self.vb.netherPowerStacks = 0
 	if netherPowerFrame then netherPowerFrame:Hide() end
 end
 
@@ -214,7 +217,10 @@ local function netherPowerFrameHide(self)
 end
 
 local function updateNetherPowerFrame(self, stacks)
-	if not self:IsInCombat() then return end
+	if not self:IsInCombat() or stacks <= 0 then
+		if netherPowerFrame then netherPowerFrame:Hide() end
+		return
+	end
 	if not self.Options.ShowNetherPowerDec then
 		if netherPowerFrame then netherPowerFrame:Hide() end
 		return
@@ -339,10 +345,18 @@ function mod:SPELL_AURA_REMOVED(args)
 		end
 		clearIncinerateTarget(self, args.destName)
 	elseif args:IsSpellID(66228, 67106, 67107, 67108) and args:GetDestCreatureID() == 34780 then
-		if not self:IsInCombat() then return end
 		self.vb.netherPowerStacks = 0
-		updateNetherPowerFrame(self, 0)
-		self:Schedule(2, netherPowerFrameHide, self)
+		if self:IsInCombat() and self.Options.ShowNetherPowerDec then
+			self:Unschedule(netherPowerFrameHide)
+			if not netherPowerFrame then createNetherPowerFrame() end
+			local spellName = DBM:GetSpellInfo(67009) or "Nether Power"
+			netherPowerFrame.label:SetText(string.format("|cffffffff%s:|r |cff69ccf0%d|r", spellName, 0))
+			netherPowerFrame:Show()
+			self:Schedule(2, netherPowerFrameHide, self)
+		else
+			self:Unschedule(netherPowerFrameHide)
+			if netherPowerFrame then netherPowerFrame:Hide() end
+		end
 	end
 end
 
