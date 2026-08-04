@@ -42,15 +42,16 @@ local specWarnArcaneCleaveStack       = mod:NewSpecialWarningStack(305428, nil, 
 local specWarnArcaneCleaveTaunt       = mod:NewSpecialWarningTaunt(305428, nil, nil, nil, 1, 2)    -- Предупреждение о смене танков (таунт)
 
 -- --- Фаза 4 и 5 ---
-local warnIceSpikeTarget              = mod:NewTargetAnnounce(305443, 3)                       -- Ледяной шип (305443)
+local warnIceSpikeTarget              = mod:NewTargetNoFilterAnnounce(305443, 3)               -- Ледяной шип (305443)
 local timerIceSpikeCD                 = mod:NewNextTimer(10, 305443)                             -- Перезарядка Ледяного шипа (10с)
 
-local warnCallOfTheDeadTarget         = mod:NewTargetAnnounce(305447, 4)                       -- Зов мертвых (305447)
+local warnCallOfTheDeadTarget         = mod:NewTargetNoFilterAnnounce(305447, 4)               -- Зов мертвых (305447)
 local timerCallOfTheDeadCD            = mod:NewNextTimer(10, 305447)                             -- Перезарядка Зова мертвых (10с)
 
 -- --- Основные таймеры (10 ХМ) ---
 local timerRingOfDarkness            = mod:NewNextTimer(12, 305425)                             -- Кольцо мрака (12с)
-local timerDevouringFlame             = mod:NewNextTimer(42, 305433)                             -- Пожирающее Пламя
+local timerDevouringFlame             = mod:NewNextTimer(42, 305433)                             -- Пожирающее Пламя (перезарядка)
+local timerDevouringFlameCast         = mod:NewCastTimer(3, 305433)                              -- Взрыв Пожирающего Пламя (3с)
 local timerCurseOfExhaustion          = mod:NewNextTimer(20, 305435)                             -- Проклятие истощения
 local timerVengefulCorruption         = mod:NewNextTimer(20, 305429)                             -- Мстительная порча
 local berserkTimer                    = mod:NewBerserkTimer(900)                               -- Берсерк (15 мин)
@@ -238,6 +239,7 @@ function mod:SPELL_AURA_APPLIED(args)
 			specWarnDevouringFlameYou:Show()
 			yellDevouringFlame:Yell()
 		end
+		timerDevouringFlameCast:Start()
 		self:UnscheduleMethod("SetDevouringFlameIcons")
 		self:ScheduleMethod(0.1, "SetDevouringFlameIcons")
 	elseif args:IsSpellID(305429) then
@@ -278,10 +280,10 @@ function mod:UNIT_HEALTH(uId)
 	if self:GetUnitCreatureId(uId) == 15690 then
 		local stage = self:GetStage()
 		if stage and stage ~= 0 then
-			local hp = DBM:GetBossHPByUnitID(uId)
-			if hp then
-				if self:IsDifficulty("heroic10") then
-					-- --- 10 ХМ: Смена 6 фаз по % ХП ---
+			if self:IsDifficulty("heroic10") then
+				-- --- 10 ХМ: Смена 6 фаз по % ХП ---
+				local hp = DBM:GetBossHPByUnitID(uId)
+				if hp then
 					if stage == 1 and hp <= 85 then
 						self:SetStage(2)
 						warnPhase:Show(L.Phase2)
@@ -327,8 +329,11 @@ function mod:UNIT_HEALTH(uId)
 						timerCallOfTheDeadCD:Cancel()
 						self:ClearTargetIcon()
 					end
-				else
-					-- --- 10 ОБ: Смена 3 фаз по % ХП ---
+				end
+			else
+				-- --- 10 ОБ: Смена 3 фаз по % ХП ---
+				local hp = DBM:GetBossHPByUnitID(uId)
+				if hp then
 					if stage == 1 and hp <= 60 then
 						self:SetStage(2)
 						warnPhase:Show(L.Phase2)
