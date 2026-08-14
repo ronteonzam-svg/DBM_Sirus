@@ -10,7 +10,7 @@ mod:RegisterEvents(
 	"CHAT_MSG_MONSTER_YELL"
 )
 mod:RegisterEventsInCombat(
-	"SPELL_CAST_START 30852 305425 305443 305447",
+	"SPELL_CAST_START 30852 305425 305443 305447 305437",
 	"SPELL_CAST_SUCCESS 305435",
 	"SPELL_AURA_APPLIED 305433 305429 305428",
 	"SPELL_AURA_APPLIED_DOSE 305428",
@@ -40,6 +40,10 @@ local specWarnVengefulCorruptionYou   = mod:NewSpecialWarningYou(305429, nil, ni
 local warnArcaneCleave                = mod:NewStackAnnounce(305428, 2, nil, false)            -- Чародейское рассечение (305428)
 local specWarnArcaneCleaveStack       = mod:NewSpecialWarningStack(305428, nil, 7, nil, nil, 1, 2) -- 7+ стаков рассечения на себе
 local specWarnArcaneCleaveTaunt       = mod:NewSpecialWarningTaunt(305428, nil, nil, nil, 1, 2)    -- Предупреждение о смене танков (таунт)
+
+-- --- Фаза 3 ---
+local warningFireAndBrimstone        = mod:NewSpellAnnounce(305437, 3)                         -- Огонь и сера (305437)
+local timerFireAndBrimstone          = mod:NewNextTimer(20, 305437)                             -- Перезарядка Огня и серы (20с)
 
 -- --- Фаза 4 и 5 ---
 local warnIceSpikeTarget              = mod:NewTargetNoFilterAnnounce(305443, 3)               -- Ледяной шип (305443)
@@ -213,6 +217,9 @@ function mod:SPELL_CAST_START(args)
 		timerCallOfTheDeadCD:Start(10)
 		self:UnscheduleMethod("HandleTargetSpell")
 		self:ScheduleMethod(0.1, "HandleTargetSpell", warnCallOfTheDeadTarget, 4, "SetIconOnCallOfTheDead")
+	elseif args:IsSpellID(305437) then
+		warningFireAndBrimstone:Show()
+		timerFireAndBrimstone:Start(20)
 	end
 end
 
@@ -302,6 +309,7 @@ function mod:UNIT_HEALTH(uId)
 						timerDevouringFlame:Start(10)
 						timerCurseOfExhaustion:Cancel()
 						timerVengefulCorruption:Cancel()
+						timerFireAndBrimstone:Start(20)
 					elseif stage == 3 and hp <= 30 then
 						self:SetStage(4)
 						warnPhase:Show(L.Phase4)
@@ -310,6 +318,7 @@ function mod:UNIT_HEALTH(uId)
 						timerCurseOfExhaustion:Start(20)
 						timerVengefulCorruption:Start(9)
 						timerIceSpikeCD:Start(10)
+						timerFireAndBrimstone:Cancel()
 					elseif stage == 4 and hp <= 20 then
 						self:SetStage(5)
 						warnPhase:Show(L.Phase5)
