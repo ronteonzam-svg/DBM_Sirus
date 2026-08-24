@@ -14,6 +14,7 @@ mod:RegisterEvents(
 
 --обычка--
 local timerEvo = mod:NewNextTimer(111.5, 30254) -- Прилив сил
+local berserkTimer = mod:NewBerserkTimer(600)
 
 -- героик --
 local warnUnstableTar = mod:NewAnnounce("WarnUnstableTar", 3, 305309)
@@ -35,10 +36,11 @@ mod.vb.isinCombat = false
 mod:AddNamePlateOption("Nameplate1", 305305, true)
 
 
-function mod:OnCombatStart()
+function mod:OnCombatStart(delay)
 	if self:IsDifficulty("normal10") then
 		DBM:FireCustomEvent("DBM_EncounterStart", 15691, "The Curator")
 		timerEvo:Start(101)
+		berserkTimer:Start(-delay)
 	elseif self:IsDifficulty("heroic10") then
 		DBM:FireCustomEvent("DBM_EncounterStart", 99974, "The Curator")
 		for i = 1, 3 do
