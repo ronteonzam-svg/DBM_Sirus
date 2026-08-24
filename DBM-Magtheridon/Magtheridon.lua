@@ -125,7 +125,7 @@ function mod:OnCombatStart(delay)
 		fakeQuake = false
 		self:Quake(30)
 		self:Nova()
-		berserkTimer:Start()
+		berserkTimer:Start(-delay)
 	end
 end
 
