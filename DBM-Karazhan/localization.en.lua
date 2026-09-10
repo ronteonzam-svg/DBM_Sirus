@@ -144,6 +144,7 @@ L:SetTimerLocalization{
 }
 
 L:SetOptionLocalization{
+	AlwaysShowMediation = "Always show meditation timer on player marked by $spell:305351"
 }
 
 L:SetMiscLocalization{
@@ -262,7 +263,8 @@ L:SetWarningLocalization{
 
 L:SetTimerLocalization{
 	timerNightbane			= "Nightbane incoming",
-	timerAirPhase			= "Air Phase"
+	timerAirPhase			= "Air Phase",
+	timerGroundPhase		= "Landing"
 }
 
 L:SetOptionLocalization{
@@ -272,7 +274,8 @@ L:SetOptionLocalization{
 	DBM_NB_AIR_WARN			= "Show warning for Air Phase",
 	PrewarnGroundPhase		= "Show pre-warnings for Ground Phase",
 	timerNightbane			= "Show timer for Nightbane summon",
-	timerAirPhase			= "Show timer for Air Phase duration"
+	timerAirPhase			= "Show timer for Air Phase duration",
+	timerGroundPhase		= "Show timer for boss landing (ground phase)"
 }
 
 L:SetMiscLocalization{

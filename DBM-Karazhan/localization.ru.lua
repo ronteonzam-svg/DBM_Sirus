@@ -158,6 +158,7 @@ L:SetTimerLocalization{
 }
 
 L:SetOptionLocalization{
+	AlwaysShowMediation = "Всегда показывать таймер медитации на игроке с меткой $spell:305351"
 }
 
 L:SetMiscLocalization{
@@ -294,7 +295,8 @@ L:SetWarningLocalization{
 
 L:SetTimerLocalization{
 	timerNightbane			= "Начало",
-	timerAirPhase			= "Воздушная фаза"
+	timerAirPhase			= "Воздушная фаза",
+	timerGroundPhase		= "Приземление"
 }
 
 L:SetOptionLocalization{
@@ -304,7 +306,8 @@ L:SetOptionLocalization{
 	DBM_NB_AIR_WARN			= "Показать предупреждение для воздушной фазы",
 	PrewarnGroundPhase		= "Показать предварительные предупреждения для наземной фазы",
 	timerNightbane			= "Показать таймер для вызова",
-	timerAirPhase			= "Показать таймер продолжительности воздушной фазы"
+	timerAirPhase			= "Показать таймер продолжительности воздушной фазы",
+	timerGroundPhase		= "Показать таймер до приземления босса (наземная фаза)"
 }
 
 L:SetMiscLocalization{
