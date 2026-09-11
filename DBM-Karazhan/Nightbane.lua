@@ -84,8 +84,8 @@ local timerConflCD        = mod:NewNextTimer(30, 305377, nil, nil, nil, 3, nil, 
 local timerPyromancerCD   = mod:NewNextTimer(61.8, 305382, nil, nil, nil, 3)
 local timerCallCD         = mod:NewNextTimer(125, 305386, nil, nil, nil, 6)
 local timerDarkWaveCD     = mod:NewNextTimer(20, 305392, nil, nil, nil, 2)
-local timerGroundPhase    = mod:NewTimer(21.9, "timerGroundPhase", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
-local timerNightbane      = mod:NewTimer(29, "timerNightbane", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
+local timerGroundPhase    = mod:NewTimer(21.7, "timerGroundPhase", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
+local timerNightbane      = mod:NewTimer(27.7, "timerNightbane", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
 
 
 local pyromancerTargets = {}
@@ -201,8 +201,8 @@ function mod:SPELL_AURA_REMOVED(args)
 		self:RemoveIcon(args.destName)
 		if self.vb.groundPhase == self.vb.alivePyromancers - 1 then
 			self:UnscheduleMethod("LandingFinished")
-			self:ScheduleMethod(21.9, "LandingFinished")
-			timerGroundPhase:Start(21.9)
+			self:ScheduleMethod(21.7, "LandingFinished")
+			timerGroundPhase:Start(21.7)
 			timerGrievingFireCD:Start(35)
 			timerConflCD:Start(52)
 			timerPyromancerCD:Start(83.8)
