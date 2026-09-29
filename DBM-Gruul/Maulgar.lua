@@ -2,14 +2,19 @@ local mod 	= 	DBM:NewMod("Maulgar", "DBM-Gruul");
 local L		= 	mod:GetLocalizedStrings()
 
 mod:SetRevision(("$Revision: 183 $"):sub(12, -3))
-mod:SetCreatureID(18831)
+mod:SetCreatureID(18831, 18832, 18834, 18835, 18836)
+-- 18831 - High King Maulgar (boss)
+-- 18832 - Krosh Firehand (mage)
+-- 18834 - Olm the Summoner (warlock)
+-- 18835 - Kiggler the Crazed (shaman)
+-- 18836 - Blindeye the Seer (priest)
 mod:SetUsedIcons(8,7,6,5,4)
 
-mod:RegisterCombat("combat", 18831)
+mod:RegisterCombat("combat")
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 305221", -- 33131 (Олм: призыв собак)
 	"SPELL_CAST_SUCCESS 16508 33129 33175 33237", -- 33147 (Слепоглаз)
-	"SPELL_AURA_APPLIED 305216 305247 33238 33054 33173"
+	"SPELL_AURA_APPLIED 305216 305247 33238 33054 33173 305236"
 )
 
 local isDispeller = select(2, UnitClass("player")) == "PRIEST" or select(2, UnitClass("player")) == "SHAMAN" or select(2, UnitClass("player")) == "MAGE"
@@ -36,6 +41,12 @@ local timerArcaneExplosionCD         = mod:NewCDTimer(30, 33237, nil, nil, nil, 
 mod:AddTimerLine(DBM_CORE_L.HEROIC_MODE)
 
 local warnMight                      = mod:NewAnnounce("WarnMight", 2)
+local warnLivingBomb                 = mod:NewTargetNoFilterAnnounce(305236, 4)
+
+-- TODO:
+-- local specWarnLivingBomb            = mod:NewSpecialWarningMoveAway(305236, nil, nil, nil, 1, 2)
+-- local yellLivingBomb                = mod:NewYell(305236)
+-- mod:AddSetIconOption("SetIconOnBombTargets", 305236, false, false, {6, 7, 8})
 
 local specWarnShield                 = mod:NewSpecialWarningDispel(33054 or 305247, isDispeller)
 local specWarnKickCleanse            = mod:NewSpecialWarning("KickNow", "-Melee")
@@ -43,11 +54,21 @@ local specWarnKickCleanse            = mod:NewSpecialWarning("KickNow", "-Melee"
 local timerMight                     = mod:NewTargetTimer(60, 305216, "timerActive")
 local timerMightCD                   = mod:NewCDTimer(65, 305216)
 
+local bombTargets = {}
+
+local function warnBombTargets(self)
+	if #bombTargets > 0 then
+		warnLivingBomb:Show(table.concat(bombTargets, "<, >"))
+		table.wipe(bombTargets)
+	end
+end
+
 mod:AddBoolOption("WarnMight",true)
 mod:AddBoolOption("AnnounceToChat",false)
 
 function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 18831, "High King Maulgar")
+	table.wipe(bombTargets)
 	if mod:IsDifficulty("heroic25") then
 		timerMightCD:Start(5)
 	else
@@ -62,6 +83,7 @@ end
 
 function mod:OnCombatEnd(wipe)
 	DBM:FireCustomEvent("DBM_EncounterEnd", 18831, "High King Maulgar", wipe)
+	table.wipe(bombTargets)
 end
 
 function mod:SPELL_CAST_START(args)
@@ -116,5 +138,15 @@ function mod:SPELL_AURA_APPLIED(args)
 		timerWhirlCD:Start()
 		timerWhirl:Start()
 		specWarnMelee:Show()
+	elseif (args:IsSpellID(305236) or args.spellName == "Живая бомба") and args:IsDestTypePlayer() then
+		bombTargets[#bombTargets + 1] = args.destName
+		-- TODO: if args:IsPlayer() then specWarnLivingBomb:Show() yellLivingBomb:Yell() end
+		-- TODO: SetIcon logic for bomb targets
+		self:Unschedule(warnBombTargets)
+		if #bombTargets >= 3 then
+			warnBombTargets(self)
+		else
+			self:Schedule(0.3, warnBombTargets, self)
+		end
 	end
 end
