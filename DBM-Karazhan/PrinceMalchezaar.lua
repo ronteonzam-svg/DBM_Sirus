@@ -12,7 +12,7 @@ mod:RegisterEvents(
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 30852 305425 305443 305447 305437",
 	"SPELL_CAST_SUCCESS 305435",
-	"SPELL_AURA_APPLIED 305433 305429 305428",
+	"SPELL_AURA_APPLIED 305433 305429 305428 30843 39095",
 	"SPELL_AURA_APPLIED_DOSE 305428",
 	"UNIT_HEALTH"
 )
@@ -23,6 +23,8 @@ mod:RegisterEventsInCombat(
 local warningInfernal                = mod:NewSpellAnnounce(37277, 2)
 local timerInfernal                  = mod:NewCDTimer(45, 37277)                              -- Метеоры / Инферналы
 local timerNova                      = mod:NewNextTimer(30, 30852)                            -- Кольцо тьмы
+local timerAmpMagicCD                = mod:NewCDTimer(27, 39095)                              -- Усиленное заклинание
+local specWarnEnfeeble               = mod:NewSpecialWarningYou(30843, nil, nil, nil, 1, 2)    -- Изнеможение на вас
 
 -- ============================================================================
 -- ===                      ГЕРОИЧЕСКИЙ РЕЖИМ (10 ХМ)                      ===
@@ -158,7 +160,7 @@ function mod:OnCombatStart(delay)
 		berserkTimer:Start(-delay)
 	else
 		-- --- 10 ОБ ---
-		timerInfernal:Start()
+		timerInfernal:Start(40 - delay)
 		timerNova:Start(35)
 	end
 end
@@ -178,20 +180,13 @@ end
 -- Крики босса (только для 10 ОБ)
 function mod:CHAT_MSG_MONSTER_YELL(msg)
 	if self:IsDifficulty("normal10") then
-		if self:GetStage() == 1 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
+		if msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2 then
 			warningInfernal:Show()
-			timerInfernal:Start()
-		elseif self:GetStage() == 2 and msg == L.DBM_PRINCE_YELL_P3 then
-			self:SetStage(3)
-			warnPhase:Show(L.Phase3)
-			warningInfernal:Show()
-			timerInfernal:Start(15)
-			timerNova:Start()
-		elseif self:GetStage() == 1 and msg == L.DBM_PRINCE_YELL_P2 then
-			self:SetStage(2)
-			warnPhase:Show(L.Phase2)
-		elseif self:GetStage() == 3 and (msg == L.DBM_PRINCE_YELL_INF1 or msg == L.DBM_PRINCE_YELL_INF2) then
-			timerInfernal:Start(17)
+			if self:GetStage() == 3 then
+				timerInfernal:Start(17)
+			else
+				timerInfernal:Start()
+			end
 		end
 	end
 end
@@ -277,6 +272,13 @@ function mod:SPELL_AURA_APPLIED(args)
 		else
 			warnArcaneCleave:Show(args.destName, amount)
 		end
+	elseif args:IsSpellID(30843) then
+		-- TODO: maybe later restrict this to melee only
+		if args:IsPlayer() then
+			specWarnEnfeeble:Show()
+		end
+	elseif args:IsSpellID(39095) then
+		timerAmpMagicCD:Start()
 	end
 end
 
@@ -349,6 +351,11 @@ function mod:UNIT_HEALTH(uId)
 					elseif stage == 2 and hp <= 30 then
 						self:SetStage(3)
 						warnPhase:Show(L.Phase3)
+						warningInfernal:Show()
+						timerInfernal:Start(15)
+						timerNova:Cancel()
+						timerNova:Start(5)
+						timerAmpMagicCD:Start(5)
 					end
 				end
 			end
