@@ -12,8 +12,10 @@ mod:RegisterCombat("combat")
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 41455",
 	"SPELL_CAST_SUCCESS 41455",
-	"SPELL_AURA_APPLIED 41485 41481 41482 41541 41476 41475 41452 41453 41450 41451",
-	"SPELL_AURA_REMOVED 41479 41485"
+	"SPELL_AURA_APPLIED 376223",
+	"SPELL_AURA_REMOVED 41479 41485",
+	"SPELL_HEAL 376235",
+	"SPELL_PERIODIC_HEAL 376235"
 )
 
 local warnPoison			= mod:NewTargetNoFilterAnnounce(41485, 3, nil, "Healer", 3)
@@ -23,13 +25,16 @@ local warnDevAura			= mod:NewSpellAnnounce(41452, 3, nil, "Physical", 2)
 local warnResAura			= mod:NewSpellAnnounce(41453, 3, nil, "-Physical", 2)
 
 local specWarnShield		= mod:NewSpecialWarningReflect(41475, "Dps", nil, nil, 1, 2)
-local specWarnFlame			= mod:NewSpecialWarningMove(41481, nil, nil, nil, 1, 2)
+local specWarnFlame			= mod:NewSpecialWarningMove(376223, nil, nil, nil, 1, 2)
+local yellFlame            	= mod:NewYell(376223)
+local yellFlameFades		= mod:NewShortFadesYell(376223)
 local specWarnBlizzard		= mod:NewSpecialWarningMove(41482, nil, nil, nil, 1, 2)
 local specWarnConsecration	= mod:NewSpecialWarningMove(41541, nil, nil, nil, 1, 2)
 local specWarnCoH			= mod:NewSpecialWarningInterrupt(41455, "HasInterrupt", nil, 2, 1, 2)
 local specWarnImmune		= mod:NewSpecialWarning("Immune", false)
 
 local timerVanish			= mod:NewBuffActiveTimer(31, 41476, nil, nil, nil, 6)
+local timerFlame			= mod:NewBuffActiveTimer(14, 376223, nil, nil, nil, 6)
 local timerShield			= mod:NewBuffActiveTimer(20, 41475, nil, nil, nil, 5, nil, (DBM_COMMON_L.HEALER_ICON or "") .. (DBM_COMMON_L.DAMAGE_ICON or ""))
 local timerMeleeImmune		= mod:NewTargetTimer(15, 41450, nil, "Physical", 2, 5, nil, DBM_COMMON_L.DAMAGE_ICON)
 local timerSpellImmune		= mod:NewTargetTimer(15, 41451, nil, "-Physical", 2, 5, nil, DBM_COMMON_L.DAMAGE_ICON)
@@ -40,9 +45,39 @@ local timerNextCoH			= mod:NewCDTimer(14, 41455, nil, nil, nil, 4, nil, DBM_COMM
 local berserkTimer			= mod:NewBerserkTimer(900)
 
 mod:AddSetIconOption("PoisonIcon", 41485)
+mod:AddBoolOption("RaidReportHeal", false)
+mod:AddBoolOption("RaidReportHealEnd", false)
+mod.vb.bossMaxHealth = 172125000
+mod.vb.totalHeal	= 0
+mod.vb.totalHealEnd	= 0
+
+function mod:HealReport()
+	local pctHeal = 0
+    pctHeal = (self.vb.totalHeal / self.vb.bossMaxHealth) * 100
+	if self.Options.RaidReportHeal then
+		SendChatMessage(string.format("DBM: %s исцелило на %s (%.1ff%% от макс. HP)", self.vb.healSpellName,  self.vb.totalHeal, pctHeal), "RAID")
+	self.vb.totalHeal = 0
+	end
+end
+
+function mod:HealReportEnd()
+    local pctHealEnd = 0
+    pctHealEnd = (self.vb.totalHealEnd / self.vb.bossMaxHealth) * 100
+		SendChatMessage(string.format("DBM: %s исцелило за весь бой на %s (%.1ff%% от макс. HP)", self.vb.healSpellName,  self.vb.totalHealEnd, pctHealEnd), "RAID")
+end
 
 function mod:OnCombatStart(delay)
+	self.vb.totalHeal = 0
+	self.vb.totalHealEnd = 0
 	berserkTimer:Start(-delay)
+	timerFlame:Start(16-delay)
+end
+
+function mod:OnCombatEnd(wipe)
+	DBM:FireCustomEvent("DBM_EncounterEnd", 22949 or 22950 or 22951 or 22952, "Council", wipe)
+	if self.Options.RaidReportHealEnd then
+		self:ScheduleMethod(0.1, "HealReportEnd")
+	end
 end
 
 function mod:SPELL_AURA_APPLIED(args)
@@ -52,9 +87,14 @@ function mod:SPELL_AURA_APPLIED(args)
 		if self.Options.PoisonIcon then
 			self:SetIcon(args.destName, 1)
 		end
-	elseif spellId == 41481 and args:IsPlayer() and self:AntiSpam(3, 1) and not self:IsTrivial() then
-		 specWarnFlame:Show()
-		 specWarnFlame:Play("runaway")
+	elseif spellId == 376223 then
+		timerFlame:Start()
+		if args:IsPlayer() and self:AntiSpam(3, 1) then
+			yellFlame:Yell()
+			yellFlameFades:Countdown(spellId)
+			specWarnFlame:Show()
+			specWarnFlame:Play("runaway")
+		end
 	elseif spellId == 41482 and args:IsPlayer() and self:AntiSpam(3, 2) and not self:IsTrivial() then
 		 specWarnBlizzard:Show()
 		 specWarnBlizzard:Play("runaway")
@@ -91,6 +131,10 @@ function mod:SPELL_AURA_REMOVED(args)
 		if self.Options.PoisonIcon then
 			self:RemoveIcon(args.destName)
 		end
+	elseif spellId == 376223 then
+		if args:IsPlayer() then
+			yellFlameFades:Cancel()
+		end
 	end
 end
 
@@ -108,3 +152,16 @@ function mod:SPELL_CAST_SUCCESS(args)
 		timerNextCoH:Start(13.3)
 	end
 end
+
+function mod:SPELL_HEAL(_, _, _, _, _, _, spellId, _, _, amount)
+	--local spellId = args.spellId
+	--local amount = args.amount
+	self.vb.healSpellName = GetSpellInfo(spellId)
+	if spellId == 376235 then
+		self.vb.totalHeal     = self.vb.totalHeal + (amount or 0)
+		self.vb.totalHealEnd = self.vb.totalHealEnd + (amount or 0)
+		self:UnscheduleMethod("HealReport")
+        self:ScheduleMethod(2.0, "HealReport")
+	end
+end
+mod.SPELL_PERIODIC_HEAL = mod.SPELL_HEAL
