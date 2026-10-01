@@ -66,6 +66,9 @@ mod.vb.fleshCount = 0
 mod.vb.netherPowerStacks = 0
 local incinerateFleshTargetName
 
+-- Forward declarations: must be above OnCombatStart/OnCombatEnd so they see these as locals (upvalues), not nil globals
+local netherPowerFrame, netherPowerFrameHide, warnNetherPower
+
 local function PortalLoop(self)
 	if self:IsInCombat() then
 		timerPortalCD:Start(120)
@@ -161,7 +164,6 @@ do
 end
 
 -- Постоянный счётчик стаков Nether Power
-local netherPowerFrame
 
 local function createNetherPowerFrame()
 	if netherPowerFrame then return end
@@ -171,6 +173,17 @@ local function createNetherPowerFrame()
 	netherPowerFrame:SetFrameStrata("HIGH")
 	netherPowerFrame:SetClampedToScreen(true)
 	netherPowerFrame:Hide()
+
+	-- Страховка: если бой уже закончился, а плашка видна, скрываем её сами
+	local elapsed = 0
+	netherPowerFrame:SetScript("OnUpdate", function(f, e)
+		elapsed = elapsed + e
+		if elapsed < 0.5 then return end
+		elapsed = 0
+		if not mod:IsInCombat() then
+			f:Hide()
+		end
+	end)
 
 	-- Левая половина фона (плавное затухание влево от центра)
 	local bgLeft = netherPowerFrame:CreateTexture(nil, "BACKGROUND")
@@ -210,7 +223,7 @@ local function createNetherPowerFrame()
 	iconBorder:SetVertexColor(0, 0, 0, 0.8)
 end
 
-local function netherPowerFrameHide(self)
+function netherPowerFrameHide(self)
 	if netherPowerFrame then
 		netherPowerFrame:Hide()
 	end
@@ -232,7 +245,7 @@ local function updateNetherPowerFrame(self, stacks)
 	netherPowerFrame:Show()
 end
 
-local function warnNetherPower(self)
+function warnNetherPower(self)
 	if not self:IsInCombat() then return end
 	if self.Options.SpecWarn67009spell then
 		specWarnNetherPower:Show()
@@ -379,5 +392,3 @@ function mod:CHAT_MSG_MONSTER_YELL(msg)
 		timerCombatStart:Start()
 	end
 end
-
-

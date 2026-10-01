@@ -23,7 +23,12 @@ mod:AddTimerLine(DBM_CORE_L.HEROIC_MODE)
 
 local timerHandCD                   = mod:NewCDTimer(29, 305188)-- Руки(Зов камня)
 local timerHateStrike		    = mod:NewCDTimer(6, 305197)-- Удар ненависти
-local timerStunningBlow		    = mod:NewCDTimer(20, 305183)-- Ошеломляющий удар
+local timerStunningBlow		    = mod:NewCDTimer(16, 305183)-- Ошеломляющий удар
+
+mod:GroupSpells(305188, "Strike")
+mod:GroupSpells(305201, "TimerFurnaceActive", "TimerFurnaceInactive")
+mod:GroupSpells(305204, "TimerBurnedFlesh")
+
 local timerHandStrike               = mod:NewTimer(7,"Strike", 305188)	-- руки закроются через/Хлопок
 local timerFurnaceActive            = mod:NewTimer(8,"TimerFurnaceActive", 305201)-- время активности печи
 local timerFurnaceInactive          = mod:NewTimer(43,"TimerFurnaceInactive", 305201)-- время неактивности печи

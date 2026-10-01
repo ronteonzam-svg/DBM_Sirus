@@ -19,6 +19,7 @@ local warningHolyFire		= mod:NewTargetAnnounce(29522, nil, nil, nil, 3)	--Свя
 local timerRepentance		= mod:NewBuffActiveTimer(12.6, 29511)
 local timerRepentanceCDob		= mod:NewCDTimer(30, 29511)
 local timerHolyFire			= mod:NewTargetTimer(12, 29522)
+local berserkTimer			= mod:NewBerserkTimer(600)
 
 mod:AddBoolOption("RangeFrame", true)
 
@@ -78,6 +79,7 @@ function mod:OnCombatStart(delay)
 	if self:IsDifficulty("normal10") then
 		timerRepentanceCDob:Start(28-delay)
 		warningRepentanceSoon:Schedule(23-delay)
+		berserkTimer:Start(-delay)
 		if self.Options.RangeFrame then
 			DBM.RangeCheck:Show(12)
 		end

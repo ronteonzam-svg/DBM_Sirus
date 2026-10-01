@@ -10,7 +10,7 @@ mod:SetUsedIcons(6, 7, 8)
 
 mod:RegisterEvents(
 	"SPELL_CAST_START 305375 305377 305386",
-	"SPELL_CAST_SUCCESS 305380",
+	"SPELL_CAST_SUCCESS 305392",
 	"SPELL_AURA_APPLIED 305382 305388",
 	"SPELL_AURA_REMOVED 305388",
 	"CHAT_MSG_MONSTER_EMOTE"
@@ -79,16 +79,20 @@ local warnPyromancer = mod:NewTargetAnnounce(305382, 3)
 
 local specWarnPyromancer = mod:NewSpecialWarningYou(305382, nil, nil, nil, 1, 3)
 
-local timerGrievingFireCD = mod:NewCDTimer(13, 305375, nil, nil, nil, 2)
-local timerPyroCD         = mod:NewCDTimer(90, 305380, nil, nil, nil, 3)
-local timerConflCD        = mod:NewCDTimer(30, 305377, nil, nil, nil, 3, nil, CL.TANK_ICON)
-local timerNightbane      = mod:NewTimer(29, "timerNightbane", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
+local timerGrievingFireCD = mod:NewNextTimer(13, 305375, nil, nil, nil, 2)
+local timerConflCD        = mod:NewNextTimer(30, 305377, nil, nil, nil, 3, nil, CL.TANK_ICON)
+local timerPyromancerCD   = mod:NewNextTimer(61.8, 305382, nil, nil, nil, 3)
+local timerCallCD         = mod:NewNextTimer(125, 305386, nil, nil, nil, 6)
+local timerDarkWaveCD     = mod:NewNextTimer(20, 305392, nil, nil, nil, 2)
+local timerGroundPhase    = mod:NewTimer(21.7, "timerGroundPhase", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
+local timerNightbane      = mod:NewTimer(27.7, "timerNightbane", "Interface\\Icons\\Ability_Mount_Undeadhorse", nil, nil, 6)
 
 
 local pyromancerTargets = {}
 mod.vb.alivePyromancers = 0
 mod.vb.groundPhase      = 0
 mod.vb.conflCount       = 0
+mod.vb.isAirPhase       = false
 mod.vb.isPyroFirst      = true
 mod.vb.isStart          = true
 
@@ -96,22 +100,32 @@ mod:AddBoolOption("RemoveWeaponOnMindControl", true)
 mod:AddSetIconOption("SetIconOnPyromancer", 305382, true, true, { 6, 7, 8 })
 mod:AddBoolOption("AnnouncePyromancerIcons", true)
 
-function mod:OnCombatStart()
+function mod:LandingFinished()
+	self.vb.isAirPhase = false
+	timerDarkWaveCD:Cancel()
+end
+
+function mod:OnCombatStart(delay)
 	DBM:FireCustomEvent("DBM_EncounterStart", 17225, "Nightbane")
-	if mod:IsDifficulty("heroic10") and self.vb.isStart then
-		timerGrievingFireCD:Start()
-		timerConflCD:Start()
-		timerPyroCD:Start()
+	if self:IsDifficulty("heroic10") and self.vb.isStart then
+		local d = delay or 0
+		timerGrievingFireCD:Start(13 - d)
+		timerConflCD:Start(30 - d)
+		timerPyromancerCD:Start(61.8 - d)
+		timerCallCD:Start(125 - d)
 		table.wipe(pyromancerTargets)
 		self.vb.groundPhase = 0
 		self.vb.alivePyromancers = 0
 		self.vb.conflCount = 0
+		self.vb.isAirPhase = false
 		self.vb.isPyroFirst = true
 		self.vb.isStart = false
 	end
 end
 
 function mod:OnCombatEnd(wipe)
+	self:UnscheduleMethod("LandingFinished")
+	self.vb.isAirPhase = false
 	DBM:FireCustomEvent("DBM_EncounterEnd", 17225, "Nightbane", wipe)
 end
 
@@ -119,16 +133,15 @@ function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(305375) then
 		timerGrievingFireCD:Start()
 	elseif args:IsSpellID(305377) then
-		-- local name = {"orgasm", "AAAAA", "AAAA_lew"} --танец
-		-- name  = name[math.random(#name)]
-		-- warnSound:Play(name)
-		if self.vb.conflCount <= 1 then
+		self.vb.conflCount = self.vb.conflCount + 1
+		if self.vb.conflCount < 3 then
 			timerConflCD:Start()
-			self.vb.conflCount = self.vb.conflCount + 1
-		else
-			self.vb.conflCount = 0
 		end
 	elseif args:IsSpellID(305386) then
+		self.vb.isAirPhase = true
+		timerGrievingFireCD:Cancel()
+		timerConflCD:Cancel()
+		timerDarkWaveCD:Start(20)
 		if UnitAura("player", L.Pyromancer, nil, "HARMFUL") or
 			UnitAura("player", L.Hypothermia, nil, "HARMFUL") and self.Options.RemoveWeaponOnMindControl then
 			-- if self:IsWeaponDependent("player") then
@@ -150,10 +163,10 @@ function mod:SPELL_CAST_START(args)
 end
 
 function mod:SPELL_CAST_SUCCESS(args)
-	if args:IsSpellID(305380) then
-		timerPyroCD:Start()
-		-- 	elseif args:IsSpellID(37098) then
-		-- 		warningBone:Show()
+	if args:IsSpellID(305392) then
+		if self.vb.isAirPhase then
+			timerDarkWaveCD:Start(20)
+		end
 	end
 end
 
@@ -185,9 +198,16 @@ end
 
 function mod:SPELL_AURA_REMOVED(args)
 	if args:IsSpellID(305388) then
+		self:RemoveIcon(args.destName)
 		if self.vb.groundPhase == self.vb.alivePyromancers - 1 then
+			self:UnscheduleMethod("LandingFinished")
+			self:ScheduleMethod(21.7, "LandingFinished")
+			timerGroundPhase:Start(21.7)
 			timerGrievingFireCD:Start(35)
-			timerConflCD:Start(54)
+			timerConflCD:Start(52)
+			timerPyromancerCD:Start(83.8)
+			timerCallCD:Start(147)
+			self.vb.conflCount = 0
 		else
 			self.vb.groundPhase = self.vb.groundPhase + 1
 		end
